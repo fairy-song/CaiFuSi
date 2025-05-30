@@ -7,7 +7,7 @@ def create_app():
     """创建并配置Flask应用"""
     try:
         print("开始创建Flask应用...")
-        app = Flask(__name__)
+    app = Flask(__name__)
         
         # 配置跨域资源共享
         print("配置CORS...")
@@ -17,7 +17,7 @@ def create_app():
         try:
             print("尝试从config.py加载配置...")
             from .config import Config
-            app.config.from_object(Config)
+    app.config.from_object(Config)
             print("配置加载成功")
         except ImportError as e:
             print(f"导入配置失败: {e}，使用默认配置")
@@ -79,8 +79,8 @@ def create_app():
             traceback.print_exc()
         
         # 添加健康检查路由
-        @app.route('/api/health', methods=['GET'])
-        def health_check():
+    @app.route('/api/health', methods=['GET'])
+    def health_check():
             return {"status": "healthy", "message": "API服务正常运行中"}, 200
         
         # 添加根路由
@@ -92,8 +92,8 @@ def create_app():
         print("已注册的路由:")
         for rule in app.url_map.iter_rules():
             print(f"{rule} - {rule.methods}")
-        
-        return app
+
+    return app 
         
     except Exception as e:
         print(f"创建应用时出现错误: {e}")

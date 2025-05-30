@@ -291,39 +291,39 @@ const Home = () => {
                 </p>
                 
                 <div className="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start animate__animated animate__fadeIn animate__delay-3s">
-                  {currentUser ? (
+          {currentUser ? (
                     <AnimatedButton 
                       as={Link} 
-                      to="/dashboard" 
+              to="/dashboard" 
                       variant="light"
                       size="lg"
                       className="rounded-pill btn-glow px-4 py-2"
-                    >
+            >
                       进入个人中心 <FaArrowRight className="ms-2" />
                     </AnimatedButton>
-                  ) : (
+          ) : (
                     <>
                       <AnimatedButton 
                         as={Link} 
-                        to="/register" 
+                to="/register" 
                         variant="light"
                         size="lg"
                         className="rounded-pill btn-glow px-4 py-2"
-                      >
+              >
                         免费注册 <FaArrowRight className="ms-2" />
                       </AnimatedButton>
                       <AnimatedButton 
                         as={Link} 
-                        to="/login" 
+                to="/login" 
                         variant="outline-light"
                         size="lg"
                         className="rounded-pill px-4 py-2"
-                      >
+              >
                         立即登录
                       </AnimatedButton>
                     </>
-                  )}
-                </div>
+          )}
+        </div>
               </div>
             </Col>
             
@@ -491,9 +491,9 @@ const Home = () => {
                         <p className="text-muted mb-0">教师，成都</p>
                       </div>
                     </div>
-                  </div>
-                </div>
-                
+          </div>
+        </div>
+
                 {/* 第五个评价 */}
                 <div className={`testimonial-slide ${currentSlide === 4 ? 'active' : ''}`}>
                   <div className="testimonial-item bg-white p-4 p-lg-5 rounded-4 shadow-sm mx-auto">
@@ -534,7 +534,7 @@ const Home = () => {
                     onMouseLeave={startSlideInterval}
                   ></button>
                 ))}
-              </div>
+          </div>
               <button 
                 className="testimonial-btn next-btn ms-3"
                 onClick={goToNextSlide}
@@ -587,7 +587,7 @@ const Home = () => {
                 <div className="step-number bg-primary text-white rounded-circle mx-auto mb-4 fs-3 fw-bold d-flex align-items-center justify-content-center pulse" style={{ width: '60px', height: '60px', animationDelay: '1s' }}>3</div>
                 <h3 className="h4 mb-3">持续指导与成长</h3>
                 <p className="text-muted">通过定期与AI教练对话，获取建议并跟踪您的财务进步，不断优化您的财务习惯。</p>
-              </div>
+        </div>
             </Col>
           </Row>
         </Container>
@@ -603,21 +603,21 @@ const Home = () => {
             加入财赋思，开启您的财务成长之旅。现在注册，即可免费获得财务健康评估！
           </p>
           
-          {currentUser ? (
+        {currentUser ? (
             <AnimatedButton 
               as={Link}
-              to="/assessment" 
+            to="/assessment" 
               variant="light" 
               size="lg"
               className="rounded-pill btn-glow px-4 py-2"
-            >
+          >
               开始财务评估 <FaArrowRight className="ms-2" />
             </AnimatedButton>
-          ) : (
+        ) : (
             <div className="d-flex flex-column flex-sm-row gap-3 justify-content-center">
               <AnimatedButton 
                 as={Link}
-                to="/register" 
+            to="/register" 
                 variant="light" 
                 size="lg"
                 className="rounded-pill btn-glow px-4 py-2"
@@ -630,11 +630,11 @@ const Home = () => {
                 variant="outline-light" 
                 size="lg"
                 className="rounded-pill px-4 py-2"
-              >
+          >
                 立即登录
               </AnimatedButton>
             </div>
-          )}
+        )}
         </Container>
       </section>
       

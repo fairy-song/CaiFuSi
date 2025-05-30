@@ -191,12 +191,12 @@ const CoachChat = () => {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
-
+    
     const userMessage = { id: Date.now(), sender: 'user', text: input };
     setMessages(prevMessages => [...prevMessages, userMessage]);
     setInput('');
     setLoading(true);
-
+    
     try {
       // 构建发送到后端的上下文
       let contextData = {
@@ -313,10 +313,10 @@ const CoachChat = () => {
               
               <Card.Body className="chat-messages p-4" style={{ height: '500px', overflowY: 'auto' }}>
                 {messages.map((message, index) => (
-                  <div
-                    key={message.id}
+            <div 
+              key={message.id} 
                     className={`message-container d-flex ${message.sender === 'user' ? 'justify-content-end' : 'justify-content-start'} mb-3`}
-                  >
+            >
                     {message.sender === 'ai' && (
                       <div className="message-avatar me-2 rounded-circle d-flex align-items-center justify-content-center bg-primary-light">
                         <FaRobot className="text-primary" />
@@ -339,12 +339,12 @@ const CoachChat = () => {
                     {message.sender === 'user' && (
                       <div className="message-avatar ms-2 rounded-circle d-flex align-items-center justify-content-center bg-success-light">
                         <FaUser className="text-success" />
-                      </div>
+              </div>
                     )}
-                  </div>
-                ))}
+            </div>
+          ))}
                 
-                {loading && (
+          {loading && (
                   <div className="d-flex justify-content-start mb-3">
                     <div className="message-avatar me-2 rounded-circle d-flex align-items-center justify-content-center bg-primary-light">
                       <FaRobot className="text-primary" />
@@ -354,35 +354,35 @@ const CoachChat = () => {
                         <div className="typing-dot"></div>
                         <div className="typing-dot"></div>
                         <div className="typing-dot"></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                </div>
+              </div>
+            </div>
+          )}
                 
-                <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} />
               </Card.Body>
-              
+        
               <Card.Footer className="p-3 bg-light border-0">
                 <Form onSubmit={handleSendMessage}>
                   <div className="d-flex">
                     <Form.Control
-                      type="text"
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
                       placeholder="输入您的问题或描述您的财务状况..."
                       className="rounded-pill me-2 border-0 shadow-sm py-2 px-3"
-                      disabled={loading}
-                    />
+              disabled={loading}
+            />
                     <Button
                       variant="primary"
-                      type="submit"
+              type="submit"
                       className="rounded-circle d-flex align-items-center justify-content-center btn-glow"
                       style={{ width: '46px', height: '46px' }}
                       disabled={loading}
                     >
                       {loading ? <Spinner animation="border" size="sm" /> : <FaPaperPlane />}
                     </Button>
-                  </div>
+        </div>
                 </Form>
               </Card.Footer>
             </Card>
@@ -397,7 +397,7 @@ const CoachChat = () => {
                 <li>讨论如何建立健康的消费习惯</li>
                 <li>寻求有关债务管理或储蓄策略的建议</li>
               </ul>
-            </div>
+      </div>
           </Col>
         </Row>
       </Container>

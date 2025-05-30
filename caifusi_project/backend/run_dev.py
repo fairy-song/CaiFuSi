@@ -22,17 +22,17 @@ try:
     # 方式1: 标准导入方式
     from backend.app import create_app
     print("✓ 应用模块导入成功")
-    
-    # 创建应用实例
-    app = create_app()
-    
+
+# 创建应用实例
+app = create_app()
+
     print("✓ 应用实例创建成功")
     print("✓ 开发模式已启用")
     print("✓ 使用智谱AI GLM-Z1-air模型")
     print(f"✓ API地址: http://localhost:5001")
     
     # 开发模式使用Flask内置服务器
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=5001) 
     
 except ImportError as e:
     print(f"✕ 导入错误: {e}")

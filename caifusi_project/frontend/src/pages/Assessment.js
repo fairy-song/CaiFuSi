@@ -342,8 +342,8 @@ const Assessment = () => {
                         />
                       </div>
                     ))}
-                  </div>
-                  
+          </div>
+          
                   <div className="mb-4">
                     <h4 className="mb-3">个性化建议</h4>
                     <Card className="border-0 bg-light rounded-3">
@@ -355,7 +355,7 @@ const Assessment = () => {
                         </ul>
                       </Card.Body>
                     </Card>
-                  </div>
+            </div>
                   
                   <div className="mb-4">
                     <h4 className="mb-3">开始您的财务教练会话</h4>
@@ -369,14 +369,14 @@ const Assessment = () => {
                       onChange={(e) => setUserName(e.target.value)}
                       className="mb-3 rounded-pill"
                     />
-                  </div>
-                  
+          </div>
+          
                   <div className="d-flex flex-column flex-md-row gap-3 justify-content-center">
                     <Button
                       variant={result.color}
                       size="lg"
                       className="rounded-pill btn-glow px-4 py-2 d-flex align-items-center justify-content-center"
-                      onClick={handleStartCoaching}
+              onClick={handleStartCoaching}
                     >
                       开始AI财务教练对话 <FaArrowRight className="ms-2" />
                     </Button>
@@ -388,7 +388,7 @@ const Assessment = () => {
                     >
                       重新评估
                     </Button>
-                  </div>
+          </div>
                 </Card.Body>
               </Card>
             </Col>
@@ -545,7 +545,7 @@ const Assessment = () => {
         <div className="floating-shape shape1"></div>
         <div className="floating-shape shape2"></div>
         <div className="floating-shape shape3"></div>
-      </div>
+          </div>
       
       <Container className="py-5">
         <Row className="justify-content-center">
@@ -558,8 +558,8 @@ const Assessment = () => {
               <p className="lead text-muted">
                 通过回答以下问题，我们将为您提供个性化的财务健康评估和建议。
               </p>
-            </div>
-            
+        </div>
+
             <Card className="border-0 rounded-4 shadow-lg">
               <Card.Body className="p-4 p-lg-5">
                 <div className="mb-4">
@@ -576,19 +576,19 @@ const Assessment = () => {
                   <h2 className="fs-4 fw-bold mb-4">{question.question}</h2>
                   
                   <div className="d-flex flex-column gap-3">
-                    {question.options.map((option) => (
+            {question.options.map((option) => (
                       <Button
-                        key={option.id}
+                key={option.id}
                         variant="outline-primary"
                         className="text-start p-3 rounded-3 option-button d-flex align-items-center justify-content-between"
                         onClick={() => handleAnswer(question.id, option.id, option.score, question.category)}
-                      >
+              >
                         <span>{option.text}</span>
                         <FaArrowRight className="option-arrow" />
                       </Button>
-                    ))}
-                  </div>
-                </div>
+            ))}
+          </div>
+        </div>
                 
                 <div className="d-flex justify-content-between align-items-center mt-5">
                   <Button 
@@ -613,7 +613,7 @@ const Assessment = () => {
                       跳过此题
                     </Button>
                   )}
-                </div>
+      </div>
               </Card.Body>
             </Card>
           </Col>

@@ -72,7 +72,7 @@ const Dashboard = () => {
           <FaMoneyBillWave size={32} color="rgba(255, 193, 7, 0.15)" />
         </div>
       </div>
-      
+
       <Container className="py-5">
         <Row className="justify-content-center mb-4">
           <Col md={10}>
@@ -200,11 +200,11 @@ const Dashboard = () => {
                         <th scope="col">日期</th>
                         <th scope="col">类别</th>
                         <th scope="col" className="text-end">金额</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {userData.recentTransactions.map(transaction => (
-                        <tr key={transaction.id}>
+              </tr>
+            </thead>
+            <tbody>
+              {userData.recentTransactions.map(transaction => (
+                <tr key={transaction.id}>
                           <td>{transaction.date}</td>
                           <td>
                             <Badge 
@@ -218,12 +218,12 @@ const Dashboard = () => {
                           <td className={`text-end fw-medium ${transaction.amount > 0 ? 'text-success' : 'text-danger'}`}>
                             {transaction.amount > 0 ? '+' : ''}
                             ¥{transaction.amount.toLocaleString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
               </Card.Body>
             </Card>
           </Col>
@@ -235,7 +235,7 @@ const Dashboard = () => {
               <Card.Body className="p-4">
                 <div className="icon-container bg-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3">
                   <FaRobot className="text-primary" size={24} />
-                </div>
+      </div>
                 <h4 className="mb-3">需要财务建议?</h4>
                 <p className="mb-4">与AI金融教练对话，获取个性化财务建议和指导，制定适合您的财务计划。</p>
                 <Button 

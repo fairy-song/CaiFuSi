@@ -88,9 +88,9 @@ async function fetchApi(endpoint, options = {}) {
     
     // 尝试解析JSON响应
     try {
-      const data = await response.json();
-      console.log(`API响应:`, data);
-      return data;
+    const data = await response.json();
+    console.log(`API响应:`, data);
+    return data;
     } catch (e) {
       // 处理非JSON响应
       console.log('API响应不是JSON格式');
@@ -210,6 +210,6 @@ const apiService = {
   submitAssessment,
   sendMessageToCoach,
   checkHealth
-};
+}; 
 
 export default apiService; 
