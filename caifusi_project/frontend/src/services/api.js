@@ -2,8 +2,13 @@ import axios from 'axios';
 
 // 这里是API服务模块，用于处理与后端的通信
 
+// 检查是否在GitHub Pages环境
+const isGitHubPages = window.location.hostname === 'xiaocow666.github.io';
+
 // 默认的API基础URL
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 
+                    (isGitHubPages ? 
+                     'https://你的API服务器地址' : 'http://localhost:5000/api');
 
 // 创建axios实例
 const api = axios.create({
@@ -44,8 +49,18 @@ api.interceptors.response.use(
 
 // 通用请求函数
 async function fetchApi(endpoint, options = {}) {
-  // 根据环境选择API基础URL - 确保与后端服务端口匹配
-  const baseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5001';
+  // 根据环境选择API基础URL
+  let baseUrl;
+  
+  // 在GitHub Pages环境中使用外部API服务
+  if (isGitHubPages) {
+    baseUrl = 'https://你的API服务器地址';  // 替换为你的实际API服务地址
+    // 注意: 外部API服务需要配置CORS允许GitHub Pages域名访问
+  } else if (process.env.NODE_ENV === 'production') {
+    baseUrl = '';  // 在其他生产环境中使用相对路径
+  } else {
+    baseUrl = 'http://localhost:5001';  // 开发环境
+  }
   
   // 确保endpoint格式正确
   const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
