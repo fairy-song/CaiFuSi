@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>财赋思 - 页面未找到</title>
+  <script>
+    // 获取当前URL信息
+    var pathSegments = window.location.pathname.split('/');
+    var repoName = pathSegments[1]; // 仓库名应该是URL的第二部分
+    
+    // 对SPA应用进行重定向
+    var redirectUrl = window.location.origin + '/' + repoName + '/';
+    
+    // 如果已经在根路径，则不需要重定向
+    if (window.location.pathname === '/' + repoName + '/') {
+      // 已经在正确路径，不做任何事
+    } else if (window.location.pathname.startsWith('/' + repoName + '/')) {
+      // 如果是子路径，重定向到首页并保留路径信息供前端路由使用
+      window.location.replace(redirectUrl);
+    } else {
+      // 其他情况，直接重定向到首页
+      window.location.replace(redirectUrl);
+    }
+  </script>
+</head>
+<body>
+  <h1>页面未找到</h1>
+  <p>正在重定向到首页...</p>
+  <p>如果页面没有自动跳转，请<a id="homeLink" href="">点击这里</a>回到首页。</p>
+  
+  <script>
+    document.getElementById('homeLink').href = redirectUrl;
+  </script>
+</body>
+</html> 
