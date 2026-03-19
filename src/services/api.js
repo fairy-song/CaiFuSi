@@ -244,6 +244,109 @@ export const checkHealth = async () => {
   }
 };
 
+// Dashboard API
+export const getDashboardOverview = async () => {
+  try {
+    const response = await api.get('/dashboard/overview');
+    return response.data;
+  } catch (error) {
+    console.error('获取Dashboard概览失败:', error);
+    throw error;
+  }
+};
+
+export const getFinancialHealth = async () => {
+  try {
+    const response = await api.get('/dashboard/financial-health');
+    return response.data;
+  } catch (error) {
+    console.error('获取财务健康度失败:', error);
+    throw error;
+  }
+};
+
+export const getUserGoals = async (status = null) => {
+  try {
+    const params = status ? { status } : {};
+    const response = await api.get('/dashboard/goals', { params });
+    return response.data;
+  } catch (error) {
+    console.error('获取用户目标失败:', error);
+    throw error;
+  }
+};
+
+export const createGoal = async (goalData) => {
+  try {
+    const response = await api.post('/dashboard/goals', goalData);
+    return response.data;
+  } catch (error) {
+    console.error('创建目标失败:', error);
+    throw error;
+  }
+};
+
+export const updateGoal = async (goalId, updates) => {
+  try {
+    const response = await api.put(`/dashboard/goals/${goalId}`, updates);
+    return response.data;
+  } catch (error) {
+    console.error('更新目标失败:', error);
+    throw error;
+  }
+};
+
+export const deleteGoal = async (goalId) => {
+  try {
+    const response = await api.delete(`/dashboard/goals/${goalId}`);
+    return response.data;
+  } catch (error) {
+    console.error('删除目标失败:', error);
+    throw error;
+  }
+};
+
+export const getRecommendations = async () => {
+  try {
+    const response = await api.get('/dashboard/recommendations');
+    return response.data;
+  } catch (error) {
+    console.error('获取建议失败:', error);
+    throw error;
+  }
+};
+
+// Assessment API (新增)
+export const submitAssessmentNew = async (assessmentData) => {
+  try {
+    const response = await api.post('/assessment/submit', { assessment: assessmentData });
+    return response.data;
+  } catch (error) {
+    console.error('提交评估失败:', error);
+    throw error;
+  }
+};
+
+export const getLatestAssessment = async () => {
+  try {
+    const response = await api.get('/assessment/latest');
+    return response.data;
+  } catch (error) {
+    console.error('获取最新评估失败:', error);
+    throw error;
+  }
+};
+
+export const getAssessmentHistory = async () => {
+  try {
+    const response = await api.get('/assessment/history');
+    return response.data;
+  } catch (error) {
+    console.error('获取评估历史失败:', error);
+    throw error;
+  }
+};
+
 // 导出API服务
 const apiService = {
   loginUser,
@@ -252,7 +355,19 @@ const apiService = {
   fetchAssessmentResults,
   submitAssessment,
   sendMessageToCoach,
-  checkHealth
-}; 
+  checkHealth,
+  // Dashboard APIs
+  getDashboardOverview,
+  getFinancialHealth,
+  getUserGoals,
+  createGoal,
+  updateGoal,
+  deleteGoal,
+  getRecommendations,
+  // Assessment APIs
+  submitAssessmentNew,
+  getLatestAssessment,
+  getAssessmentHistory
+};
 
-export default apiService; 
+export default apiService;

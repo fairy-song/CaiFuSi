@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { 
-  Navbar, Container, Nav, Button, 
-  Row, Col, Card, ListGroup 
+import {
+  Navbar, Container, Nav, Button,
+  Row, Col, Card, ListGroup
 } from 'react-bootstrap';
-import { 
-  FaHome, FaUser, FaBrain, FaRobot, 
+import {
+  FaHome, FaUser, FaBrain, FaRobot,
   FaBook, FaQuestionCircle, FaInfoCircle,
   FaLock, FaFileContract, FaShieldAlt
 } from 'react-icons/fa';
@@ -42,7 +42,7 @@ const styles = {
 // 自定义带动画的按钮组件
 const AnimatedButton = ({ children, variant, className, ...props }) => {
   const [isHovered, setIsHovered] = useState(false);
-  
+
   return (
     <Button
       variant={variant}
@@ -63,7 +63,7 @@ const AnimatedButton = ({ children, variant, className, ...props }) => {
 // 页面内容区域的过渡组件
 const PageTransition = ({ children }) => {
   const location = useLocation();
-  
+
   return (
     <div className="transition-container">
       <SwitchTransition mode="out-in">
@@ -85,6 +85,7 @@ const PageTransition = ({ children }) => {
 const Layout = () => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [brandHovered, setBrandHovered] = useState(false);
 
   const handleLogout = async () => {
@@ -241,9 +242,9 @@ const Layout = () => {
       <div className="navbar-wrapper">
         <Navbar expand="lg" bg="dark" variant="dark" className="shadow-lg py-2 navbar" style={{ backgroundColor: '#1a2234 !important' }}>
           <Container>
-            <Navbar.Brand 
-              as={Link} 
-              to="/" 
+            <Navbar.Brand
+              as={Link}
+              to="/"
               className="text-decoration-none text-white fs-4 fw-semibold"
               style={{
                 ...styles.brandText,
@@ -256,57 +257,57 @@ const Layout = () => {
                 财赋思
               </span>
             </Navbar.Brand>
-            
+
             <Navbar.Toggle aria-controls="navbar-nav" />
             <Navbar.Collapse id="navbar-nav" className="justify-content-end">
               <Nav className="align-items-center gap-3">
                 <div className="nav-link-container position-relative">
-                  <Nav.Link 
-                    as={Link} 
-                    to="/" 
+                  <Nav.Link
+                    as={Link}
+                    to="/"
                     className="text-white d-flex align-items-center border-0 nav-link"
                   >
                     <FaHome className="me-2" /> 首页
                   </Nav.Link>
                   <div className="nav-underline"></div>
                 </div>
-                
+
                 {currentUser ? (
                   <>
                     <div className="nav-link-container position-relative">
-                      <Nav.Link 
-                        as={Link} 
-                        to="/dashboard" 
+                      <Nav.Link
+                        as={Link}
+                        to="/dashboard"
                         className="text-white d-flex align-items-center border-0 nav-link"
                       >
                         <FaUser className="me-2" /> 个人中心
                       </Nav.Link>
                       <div className="nav-underline"></div>
                     </div>
-                    
+
                     <div className="nav-link-container position-relative">
-                      <Nav.Link 
-                        as={Link} 
-                        to="/assessment" 
+                      <Nav.Link
+                        as={Link}
+                        to="/assessment"
                         className="text-white d-flex align-items-center border-0 nav-link"
                       >
                         <FaBrain className="me-2" /> 心智评估
                       </Nav.Link>
                       <div className="nav-underline"></div>
                     </div>
-                    
+
                     <div className="nav-link-container position-relative">
-                      <Nav.Link 
-                        as={Link} 
-                        to="/coach" 
+                      <Nav.Link
+                        as={Link}
+                        to="/coach"
                         className="text-white d-flex align-items-center border-0 nav-link"
                       >
                         <FaRobot className="me-2" /> AI教练
                       </Nav.Link>
                       <div className="nav-underline"></div>
                     </div>
-                    
-                    <AnimatedButton 
+
+                    <AnimatedButton
                       variant="danger"
                       onClick={handleLogout}
                       className="ms-2 rounded-pill px-4 fw-medium"
@@ -317,19 +318,19 @@ const Layout = () => {
                 ) : (
                   <>
                     <div className="nav-link-container position-relative">
-                      <Nav.Link 
-                        as={Link} 
-                        to="/login" 
+                      <Nav.Link
+                        as={Link}
+                        to="/login"
                         className="text-white d-flex align-items-center border-0 nav-link"
                       >
                         登录
                       </Nav.Link>
                       <div className="nav-underline"></div>
                     </div>
-                    
+
                     <AnimatedButton
                       as={Link}
-                      to="/register" 
+                      to="/register"
                       variant="warning"
                       className="ms-2 text-dark rounded-pill px-4 fw-medium text-decoration-none"
                     >
@@ -344,12 +345,18 @@ const Layout = () => {
       </div>
 
       {/* 主要内容区域 */}
-      <main className="main-content flex-grow-1">
-        <Container>
+      <main className="main-content flex-grow-1" style={location.pathname === '/' ? { padding: 0 } : {}}>
+        {location.pathname === '/' ? (
           <PageTransition>
             <Outlet />
           </PageTransition>
-        </Container>
+        ) : (
+          <Container>
+            <PageTransition>
+              <Outlet />
+            </PageTransition>
+          </Container>
+        )}
       </main>
 
       {/* 页脚 - 在页面切换时保持不变 */}
@@ -360,7 +367,7 @@ const Layout = () => {
               <Col md={4} className="mb-4 mb-md-0">
                 <Card bg="transparent" text="white" border="0" className="bg-transparent">
                   <Card.Body className="ps-0">
-                    <Card.Title 
+                    <Card.Title
                       className="fs-3 fw-semibold mb-3 text-warning animate__animated animate__fadeIn"
                     >
                       财赋思
@@ -371,7 +378,7 @@ const Layout = () => {
                   </Card.Body>
                 </Card>
               </Col>
-              
+
               <Col md={8}>
                 <Row>
                   <Col sm={4}>
@@ -379,8 +386,8 @@ const Layout = () => {
                     <ListGroup variant="flush" className="bg-transparent">
                       <ListGroup.Item className="bg-transparent border-0 px-0 py-1">
                         <div className="footer-link-container">
-                          <Link 
-                            to="/info/team" 
+                          <Link
+                            to="/info/team"
                             className="text-light opacity-75 text-decoration-none footer-link"
                           >
                             <span className="icon"><FaInfoCircle /></span>
@@ -391,8 +398,8 @@ const Layout = () => {
                       </ListGroup.Item>
                       <ListGroup.Item className="bg-transparent border-0 px-0 py-1">
                         <div className="footer-link-container">
-                          <Link 
-                            to="/info/contact" 
+                          <Link
+                            to="/info/contact"
                             className="text-light opacity-75 text-decoration-none footer-link"
                           >
                             <span className="icon"><FaInfoCircle /></span>
@@ -403,8 +410,8 @@ const Layout = () => {
                       </ListGroup.Item>
                       <ListGroup.Item className="bg-transparent border-0 px-0 py-1">
                         <div className="footer-link-container">
-                          <Link 
-                            to="/info/history" 
+                          <Link
+                            to="/info/history"
                             className="text-light opacity-75 text-decoration-none footer-link"
                           >
                             <span className="icon"><FaInfoCircle /></span>
@@ -415,14 +422,14 @@ const Layout = () => {
                       </ListGroup.Item>
                     </ListGroup>
                   </Col>
-                  
+
                   <Col sm={4}>
                     <h5 className="fw-semibold mb-3 text-warning">资源</h5>
                     <ListGroup variant="flush" className="bg-transparent">
                       <ListGroup.Item className="bg-transparent border-0 px-0 py-1">
                         <div className="footer-link-container">
-                          <Link 
-                            to="/info/knowledge" 
+                          <Link
+                            to="/info/knowledge"
                             className="text-light opacity-75 text-decoration-none footer-link"
                           >
                             <span className="icon"><FaBook /></span>
@@ -433,8 +440,8 @@ const Layout = () => {
                       </ListGroup.Item>
                       <ListGroup.Item className="bg-transparent border-0 px-0 py-1">
                         <div className="footer-link-container">
-                          <Link 
-                            to="/info/faq" 
+                          <Link
+                            to="/info/faq"
                             className="text-light opacity-75 text-decoration-none footer-link"
                           >
                             <span className="icon"><FaQuestionCircle /></span>
@@ -445,8 +452,8 @@ const Layout = () => {
                       </ListGroup.Item>
                       <ListGroup.Item className="bg-transparent border-0 px-0 py-1">
                         <div className="footer-link-container">
-                          <Link 
-                            to="/info/tutorial" 
+                          <Link
+                            to="/info/tutorial"
                             className="text-light opacity-75 text-decoration-none footer-link"
                           >
                             <span className="icon"><FaBook /></span>
@@ -457,14 +464,14 @@ const Layout = () => {
                       </ListGroup.Item>
                     </ListGroup>
                   </Col>
-                  
+
                   <Col sm={4}>
                     <h5 className="fw-semibold mb-3 text-warning">法律</h5>
                     <ListGroup variant="flush" className="bg-transparent">
                       <ListGroup.Item className="bg-transparent border-0 px-0 py-1">
                         <div className="footer-link-container">
-                          <Link 
-                            to="/info/legal" 
+                          <Link
+                            to="/info/legal"
                             className="text-light opacity-75 text-decoration-none footer-link"
                           >
                             <span className="icon"><FaLock /></span>
@@ -475,8 +482,8 @@ const Layout = () => {
                       </ListGroup.Item>
                       <ListGroup.Item className="bg-transparent border-0 px-0 py-1">
                         <div className="footer-link-container">
-                          <Link 
-                            to="/info/legal" 
+                          <Link
+                            to="/info/legal"
                             className="text-light opacity-75 text-decoration-none footer-link"
                           >
                             <span className="icon"><FaFileContract /></span>
@@ -487,8 +494,8 @@ const Layout = () => {
                       </ListGroup.Item>
                       <ListGroup.Item className="bg-transparent border-0 px-0 py-1">
                         <div className="footer-link-container">
-                          <Link 
-                            to="/info/legal" 
+                          <Link
+                            to="/info/legal"
                             className="text-light opacity-75 text-decoration-none footer-link"
                           >
                             <span className="icon"><FaShieldAlt /></span>
@@ -502,16 +509,16 @@ const Layout = () => {
                 </Row>
               </Col>
             </Row>
-            
+
             <hr className="my-4 opacity-25" />
-            
+
             <div className="text-center text-light opacity-75">
               <p className="mb-0">© {new Date().getFullYear()} 财赋思. 保留所有权利。</p>
             </div>
           </Container>
         </footer>
       </div>
-      
+
       {/* 移动端导航栏 */}
       <MobileNavBar />
     </div>

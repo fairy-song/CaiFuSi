@@ -85,6 +85,28 @@ def create_app():
             import traceback
             traceback.print_exc()
         
+        # 注册Dashboard路由
+        try:
+            print("尝试导入dashboard_routes...")
+            from .routes.dashboard_routes import dashboard_bp
+            app.register_blueprint(dashboard_bp, url_prefix='/api/dashboard')
+            print("✓ 成功注册Dashboard服务")
+        except Exception as e:
+            print(f"注册Dashboard路由失败: {e}")
+            import traceback
+            traceback.print_exc()
+        
+        # 注册Assessment路由
+        try:
+            print("尝试导入assessment_routes...")
+            from .routes.assessment_routes import assessment_bp
+            app.register_blueprint(assessment_bp, url_prefix='/api/assessment')
+            print("✓ 成功注册Assessment服务")
+        except Exception as e:
+            print(f"注册Assessment路由失败: {e}")
+            import traceback
+            traceback.print_exc()
+        
         # 添加健康检查路由
         @app.route('/api/health', methods=['GET'])
         def health_check():

@@ -12,11 +12,11 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       return setError('请填写所有必填字段');
     }
-    
+
     try {
       setError('');
       setLoading(true);
@@ -31,16 +31,16 @@ const Login = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto py-8">
-      <div className="bg-white rounded-lg shadow-md p-8">
+    <div className="min-h-[calc(100vh-170px)] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
         <h1 className="text-2xl font-bold mb-6 text-center">登录</h1>
-        
+
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
@@ -56,7 +56,7 @@ const Login = () => {
               required
             />
           </div>
-          
+
           <div className="mb-6">
             <label htmlFor="password" className="block text-gray-700 font-medium mb-2">
               密码
@@ -71,18 +71,17 @@ const Login = () => {
               required
             />
           </div>
-          
+
           <button
             type="submit"
             disabled={loading}
-            className={`w-full bg-blue-600 text-white py-2 px-4 rounded-md font-medium ${
-              loading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-blue-700'
-            }`}
+            className={`w-full bg-blue-600 text-white py-2 px-4 rounded-md font-medium ${loading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-blue-700'
+              }`}
           >
             {loading ? '登录中...' : '登录'}
           </button>
         </form>
-        
+
         <div className="mt-6 text-center">
           <p className="text-gray-600">
             还没有账号？{' '}

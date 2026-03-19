@@ -4,17 +4,6 @@ import json
 import sys
 from zhipuai import ZhipuAI
 
-# 配置信息，避免导入错误
-class Config:
-    """应用配置"""
-    # 智谱AI API密钥 - 必须通过环境变量设置
-    ZHIPUAI_API_KEY = os.environ.get("ZHIPUAI_API_KEY")
-    if not ZHIPUAI_API_KEY:
-        raise ValueError(
-            "ZHIPUAI_API_KEY 环境变量未设置！\n"
-            "请在 .env.local 文件中配置，或访问 https://open.bigmodel.cn/ 获取 API 密钥"
-        )
-
 # 过滤思考标签函数
 def filter_thinking_tags(text):
     """
@@ -27,21 +16,27 @@ def filter_thinking_tags(text):
     # 移除可能存在的空行（连续多个换行符）
     filtered_text = re.sub(r'\n{3,}', '\n\n', filtered_text)
     
-    # 确保Markdown格式保持不变
-    # 如果需要，可以在这里添加额外的格式处理
-    
     return filtered_text.strip()
 
 class ZhipuAIService:
     def __init__(self):
-        self.api_key = Config.ZHIPUAI_API_KEY
-        # 使用新版SDK初始化客户端
-        self.client = ZhipuAI(api_key=self.api_key)
+        # 从环境变量获取 API 密钥，不在类定义阶段抛出异常
+        self.api_key = os.environ.get("ZHIPUAI_API_KEY")
+        if not self.api_key:
+            print(
+                "警告: ZHIPUAI_API_KEY 环境变量未设置！\n"
+                "请在 .env.local 文件中配置，或访问 https://open.bigmodel.cn/ 获取 API 密钥"
+            )
+            self.client = None
+        else:
+            # 使用新版SDK初始化客户端
+            self.client = ZhipuAI(api_key=self.api_key)
+            print(f"ZhipuAIService初始化成功，API密钥长度: {len(self.api_key)}")
+        
         # 会话记忆，使用字典存储不同用户的对话历史
         self.chat_history = {}
         # 最大历史记忆长度（消息数量）
         self.max_history_length = 10
-        print(f"ZhipuAIService初始化成功，API密钥长度: {len(self.api_key)}")
 
     def get_chat_response(self, data):
         """
@@ -49,6 +44,19 @@ class ZhipuAIService:
         :param data: 包含消息内容、用户ID、可选的聊天历史和问卷结果的字典
         :return: 包含回复内容的字典
         """
+        # 前置检查：API客户端是否已初始化
+        if not self.client:
+            api_key = os.environ.get("ZHIPUAI_API_KEY")
+            if api_key:
+                self.api_key = api_key
+                self.client = ZhipuAI(api_key=self.api_key)
+                print(f"ZhipuAIService延迟初始化成功，API密钥长度: {len(self.api_key)}")
+            else:
+                return {
+                    "status": "error",
+                    "message": "AI服务未配置，请联系管理员设置 ZHIPUAI_API_KEY 环境变量"
+                }
+
         try:
             # 提取数据
             message = data.get('message', '')
@@ -77,9 +85,9 @@ class ZhipuAIService:
             messages.append({"role": "user", "content": message})
             
             print(f"调用智谱AI，消息长度: {len(message)}")
-            # 调用智谱AI API - 使用新版SDK和GLM-4模型
+            # 调用智谱AI API - 使用 glm-4-flash 模型（当前推荐免费模型）
             response = self.client.chat.completions.create(
-                model="glm-4",
+                model="glm-4-flash",
                 messages=messages,
                 temperature=0.7,
                 top_p=0.9
@@ -101,7 +109,7 @@ class ZhipuAIService:
             self.chat_history[user_id].append({"role": "assistant", "content": filtered_response})
             
             # 如果历史太长，移除最早的消息
-            if len(self.chat_history[user_id]) > self.max_history_length * 2:  # 乘以2是因为每轮对话有用户和AI两条消息
+            if len(self.chat_history[user_id]) > self.max_history_length * 2:
                 self.chat_history[user_id] = self.chat_history[user_id][-self.max_history_length * 2:]
             
             return {"status": "success", "reply": filtered_response}
@@ -145,11 +153,11 @@ class ZhipuAIService:
                 # 找出用户的强项和弱项
                 strengths = []
                 weaknesses = []
-                for category, score in category_scores.items():
+                for category, cat_score in category_scores.items():
                     category_name = self._get_category_name(category)
-                    if score >= 70:
+                    if cat_score >= 70:
                         strengths.append(category_name)
-                    elif score <= 40:
+                    elif cat_score <= 40:
                         weaknesses.append(category_name)
                 
                 # 添加评估结果到提示词
@@ -189,4 +197,4 @@ class ZhipuAIService:
             'insurance': '保险保障',
             'pressure': '应对能力'
         }
-        return category_names.get(category, category) 
+        return category_names.get(category, category)

@@ -37,14 +37,19 @@ except Exception as e:
     print(f"✕ 设置路径出错: {e}")
     logger.error(f"设置路径出错: {e}", exc_info=True)
 
+# 加载环境变量
+from dotenv import load_dotenv
+env_path = project_root / '.env'
+if env_path.exists():
+    load_dotenv(env_path)
+    logger.info(f"成功加载 .env 文件: {env_path}")
+else:
+    logger.warning(f"未能找到 .env 文件: {env_path}")
+
 # 设置环境变量
 os.environ["DEV_MODE"] = "true"
-# 智谱AI API密钥从环境变量或.env.local文件中读取
-# 不在代码中硬编码密钥，以保护密钥安全
-if "ZHIPUAI_API_KEY" not in os.environ:
-    logger.warning("未设置ZHIPUAI_API_KEY环境变量，请在.env.local文件中配置")
 # 增加新环境变量，强制立即初始化模型
-os.environ["INITIALIZE_MODEL_ON_START"] = "true" 
+os.environ["INITIALIZE_MODEL_ON_START"] = "true"
 # 禁用自动加载.env文件，避免编码问题
 os.environ["FLASK_SKIP_DOTENV"] = "1"
 logger.info("环境变量设置完成")
@@ -114,7 +119,7 @@ try:
     # 使用0.0.0.0作为主机，允许从外部访问
     logger.info("启动Flask服务器...")
     # 禁用自动加载.env，避免编码问题
-    app.run(debug=True, port=5001, host='0.0.0.0', threaded=True, load_dotenv=False)
+    app.run(debug=True, port=5001, host='0.0.0.0', threaded=True, load_dotenv=False, use_reloader=False)
     
 except ImportError as e:
     print(f"✕ 导入错误: {e}")
@@ -142,7 +147,7 @@ except ImportError as e:
         
         logger.info("启动Flask服务器(备用方式)...")
         # 禁用自动加载.env，避免编码问题
-        app.run(debug=True, port=5001, host='0.0.0.0', threaded=True, load_dotenv=False)
+        app.run(debug=True, port=5001, host='0.0.0.0', threaded=True, load_dotenv=False, use_reloader=False)
     except Exception as e:
         print(f"✕ 启动失败: {e}")
         logger.critical(f"启动失败: {e}", exc_info=True)
