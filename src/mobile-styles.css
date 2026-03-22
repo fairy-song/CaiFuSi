@@ -1,0 +1,230 @@
+/* 移动端响应式样式优化 */
+
+/* 小屏幕设备通用样式 */
+@media (max-width: 767.98px) {
+  /* 字体大小优化 */
+  body {
+    font-size: 14px;
+  }
+  
+  h1 {
+    font-size: 1.8rem !important;
+  }
+  
+  h2 {
+    font-size: 1.5rem !important;
+  }
+  
+  h3 {
+    font-size: 1.3rem !important;
+  }
+  
+  /* 间距优化 */
+  .container {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  
+  .row {
+    margin-left: -10px;
+    margin-right: -10px;
+  }
+  
+  .col, [class*="col-"] {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  
+  /* 内容区域优化 */
+  .main-content {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  
+  /* 导航栏优化 */
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+  
+  .navbar-toggler {
+    padding: 0.25rem 0.5rem;
+    font-size: 1rem;
+  }
+  
+  /* 按钮优化，更大的点击区域 */
+  .btn {
+    padding: 0.5rem 1rem;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* 卡片优化 */
+  .card {
+    margin-bottom: 1rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  /* 表单元素优化 */
+  .form-control, .form-select {
+    height: 44px;
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  textarea.form-control {
+    height: auto;
+    min-height: 100px;
+  }
+}
+
+/* 超小屏幕设备样式 */
+@media (max-width: 575.98px) {
+  /* 更进一步减小字体 */
+  body {
+    font-size: 13px;
+  }
+  
+  h1 {
+    font-size: 1.6rem !important;
+  }
+  
+  h2 {
+    font-size: 1.4rem !important;
+  }
+  
+  h3 {
+    font-size: 1.2rem !important;
+  }
+  
+  /* 减小间距 */
+  .container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  
+  /* 导航栏进一步优化 */
+  .navbar-brand {
+    font-size: 1.1rem;
+  }
+  
+  /* 优化卡片和容器边距 */
+  .card {
+    margin-bottom: 0.75rem;
+  }
+  
+  .card-body {
+    padding: 0.75rem;
+  }
+  
+  /* 移动端导航菜单优化 */
+  .navbar-collapse {
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  /* 提高表单元素可用性 */
+  .form-label {
+    margin-bottom: 0.25rem;
+  }
+}
+
+/* AI聊天界面移动端优化 */
+@media (max-width: 767.98px) {
+  .chat-container {
+    max-height: calc(100vh - 220px);
+  }
+  
+  .message-bubble {
+    max-width: 85%;
+    padding: 8px 12px;
+  }
+  
+  .message-input-container {
+    padding: 8px;
+  }
+  
+  .message-input {
+    font-size: 14px;
+  }
+  
+  .send-button {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* 确保底部导航栏在移动端不会被遮挡 */
+@media (max-width: 767.98px) {
+  .footer-wrapper {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* 优化财务图表在移动端的显示 */
+@media (max-width: 767.98px) {
+  .chart-container {
+    height: 200px !important;
+  }
+  
+  .chart-legend {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+  
+  .chart-legend-item {
+    margin: 0 0.5rem 0.5rem 0;
+  }
+}
+
+/* 修复iOS特定问题 */
+@supports (-webkit-touch-callout: none) {
+  /* 修复iOS输入框内间距问题 */
+  input, select, textarea {
+    font-size: 16px !important; /* 防止iOS缩放 */
+  }
+  
+  /* 修复iOS顶部空白 */
+  body {
+    padding-top: constant(safe-area-inset-top);
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  /* 底部空白 */
+  .footer-wrapper {
+    padding-bottom: constant(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* 修复Android特定问题 */
+@supports not (-webkit-touch-callout: none) {
+  /* Android特定的样式修复 */
+  input, select, textarea {
+    font-size: 14px !important;
+  }
+}
+
+/* 优化移动端触摸体验 */
+@media (max-width: 767.98px) {
+  /* 增加可点击区域 */
+  a, button, .nav-link, .btn, .form-check, .form-check-input {
+    position: relative;
+  }
+  
+  a::after, button::after, .nav-link::after, .btn::after, .form-check::after, .form-check-input::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    z-index: -1;
+  }
+} 
