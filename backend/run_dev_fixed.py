@@ -31,9 +31,17 @@ except Exception as e:
     print(f"✕ 设置路径出错: {e}")
     logger.error(f"设置路径出错: {e}", exc_info=True)
 
+# 加载环境变量
+from dotenv import load_dotenv
+env_path = project_root / '.env'
+if env_path.exists():
+    load_dotenv(env_path)
+    logger.info(f"成功加载 .env 文件: {env_path}")
+else:
+    logger.warning(f"未能找到 .env 文件: {env_path}")
+
 # 设置环境变量
 os.environ["DEV_MODE"] = "true"
-os.environ["ZHIPUAI_API_KEY"] = "d569cc60785b4cd8a9cc3c033ac5a72f.MmbuHzbqGEsGntG5"
 # 增加新环境变量，强制立即初始化模型
 os.environ["INITIALIZE_MODEL_ON_START"] = "true" 
 logger.info("环境变量设置完成")

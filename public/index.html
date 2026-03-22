@@ -3,39 +3,18 @@
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=0" />
-    <meta name="theme-color" content="#2c3e50" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="财赋思 - AI金融心智教练"
+      content="财赋思 - AI金融心智教练，帮助您培养健康的财务心态"
     />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <title>财赋思 - AI金融心智教练</title>
-    <script>
-      // 如果是cpolar访问且没有使用hash路由，自动添加/#/
-      if (window.location.hostname.includes('cpolar') && !window.location.hash) {
-        window.location.replace(window.location.origin + '/#/');
-      }
-      
-      // 处理/Caifusi路径
-      if (window.location.pathname.includes('/Caifusi')) {
-        window.location.replace(window.location.origin + '/#/');
-      }
-    </script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 100px;
-        }
-    </style>
   </head>
   <body>
     <noscript>您需要启用JavaScript才能运行此应用。</noscript>
     <div id="root"></div>
-    <h1>正在重定向到财赋思应用...</h1>
   </body>
-</html> 
+</html>

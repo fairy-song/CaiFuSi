@@ -5,14 +5,15 @@ import { Container, Row, Col, Card, Button, Carousel, Badge } from 'react-bootst
 import { FaArrowRight, FaBrain, FaChartLine, FaRobot, FaShieldAlt, FaComments, FaChartBar } from 'react-icons/fa';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Typed from 'typed.js';
+import ParticleBackground from '../components/ParticleBackground';
 
 // 自定义卡片组件，带有悬停效果
 const FeatureCard = ({ icon, title, description, className = '' }) => {
   const [isHovered, setIsHovered] = useState(false);
-  
+
   return (
-    <Card 
-      className={`h-100 border-0 shadow-sm transition-all card-hover ${className} ${isHovered ? 'shadow-lg transform-up' : ''}`} 
+    <Card
+      className={`h-100 border-0 shadow-sm transition-all card-hover ${className} ${isHovered ? 'shadow-lg transform-up' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -48,8 +49,8 @@ const AnimatedButton = ({ children, variant, className, as, to, size, onClick })
 // 增强型徽章组件
 const EnhancedBadge = ({ children, bg, className = '' }) => {
   return (
-    <Badge 
-      bg={bg} 
+    <Badge
+      bg={bg}
       className={`custom-badge px-3 py-2 rounded-pill fw-normal position-relative overflow-hidden ${className}`}
     >
       <span className="badge-content position-relative">{children}</span>
@@ -63,59 +64,59 @@ const InvestmentPerformance = ({ userData = {} }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [position, setPosition] = useState({ top: 111.111, right: 20 });
   const [targetPosition, setTargetPosition] = useState({ top: 111.111, right: 20 });
-  
+
   // 模拟用户数据 - 实际项目中应从userData获取
   const riskProfile = userData.riskProfile || "均衡型";
   const progressValue = userData.progressValue || 75;
-  
+
   // 平滑过渡到目标位置
   useEffect(() => {
     if (position.top === targetPosition.top) return;
-    
+
     const animationFrame = requestAnimationFrame(() => {
       // 使用适中的系数0.25来平滑过渡
       const newTop = position.top + (targetPosition.top - position.top) * 0.25;
       setPosition({ top: newTop, right: position.right });
     });
-    
+
     return () => cancelAnimationFrame(animationFrame);
   }, [position, targetPosition]);
-  
+
   useEffect(() => {
     // 获取导航栏和页脚元素
     const navbar = document.querySelector('.navbar-wrapper');
     const footer = document.querySelector('.footer-wrapper');
-    
+
     // 滚动事件处理函数
     const handleScroll = () => {
       const scrollY = window.scrollY;
       // 确保组件始终可见
       setIsVisible(true);
-      
+
       // 获取导航栏底部位置（如果存在）
       const navbarBottom = navbar ? navbar.getBoundingClientRect().bottom : 0;
-      
+
       // 获取页脚顶部位置（如果存在）
       const footerTop = footer ? footer.getBoundingClientRect().top : window.innerHeight;
-      
+
       // 计算组件的高度（用于判断底部边界）
       const componentHeight = 150; // 估算高度，可以根据实际情况调整
-      
+
       // 计算新的顶部位置，直接基于滚动位置
       let newTop = scrollY + 111.111;
-      
+
       // 确保不小于导航栏底部
       newTop = Math.max(navbarBottom + 10, newTop);
-      
+
       // 确保不大于页脚顶部减去组件高度
       if (footerTop < window.innerHeight) {
         newTop = Math.min(newTop, footerTop - componentHeight - 10);
       }
-      
+
       // 更新目标位置，而不是直接更新位置
       setTargetPosition({ top: newTop, right: 20 });
     };
-    
+
     // 使用requestAnimationFrame优化滚动性能
     let ticking = false;
     const onScroll = () => {
@@ -127,25 +128,25 @@ const InvestmentPerformance = ({ userData = {} }) => {
         ticking = true;
       }
     };
-    
+
     window.addEventListener('scroll', onScroll);
     window.addEventListener('resize', handleScroll);
-    
+
     // 初始执行一次以设置正确的初始位置
     handleScroll();
-    
+
     return () => {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', handleScroll);
     };
   }, []);
-  
+
   if (!isVisible) return null;
-  
+
   return (
-    <div 
-      className="bg-white rounded-4 shadow-lg p-3 position-fixed animate__animated animate__fadeInUp" 
-      style={{ 
+    <div
+      className="bg-white rounded-4 shadow-lg p-3 position-fixed animate__animated animate__fadeInUp"
+      style={{
         maxWidth: '200px',
         top: `${position.top}px`,
         right: `${position.right}px`,
@@ -182,11 +183,11 @@ const Home = () => {
   const totalSlides = 5; // 总的评价数量
   const slideIntervalRef = useRef(null);
   const testimonialTrackRef = useRef(null);
-  
+
   // 添加首屏加载动画
   useEffect(() => {
     setFadeIn(true);
-    
+
     // 监听滚动事件，用于部分动画
     const handleScroll = () => {
       const sections = document.querySelectorAll('.animate-on-scroll');
@@ -198,7 +199,7 @@ const Home = () => {
         }
       });
     };
-    
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -226,12 +227,12 @@ const Home = () => {
       };
     }
   }, []);
-  
+
   // 用户心声轮播功能
   useEffect(() => {
     // 初始化自动轮播
     startSlideInterval();
-    
+
     // 清理函数
     return () => {
       if (slideIntervalRef.current) {
@@ -239,35 +240,35 @@ const Home = () => {
       }
     };
   }, [currentSlide]);
-  
+
   // 启动自动轮播
   const startSlideInterval = () => {
     if (slideIntervalRef.current) {
       clearInterval(slideIntervalRef.current);
     }
-    
+
     slideIntervalRef.current = setInterval(() => {
       goToNextSlide();
     }, 5000); // 5秒切换一次
   };
-  
+
   // 暂停自动轮播
   const pauseSlideInterval = () => {
     if (slideIntervalRef.current) {
       clearInterval(slideIntervalRef.current);
     }
   };
-  
+
   // 切换到下一张
   const goToNextSlide = () => {
     setCurrentSlide(prev => (prev + 1) % totalSlides);
   };
-  
+
   // 切换到上一张
   const goToPrevSlide = () => {
     setCurrentSlide(prev => (prev - 1 + totalSlides) % totalSlides);
   };
-  
+
   // 切换到指定的幻灯片
   const goToSlide = (index) => {
     setCurrentSlide(index);
@@ -275,104 +276,68 @@ const Home = () => {
 
   return (
     <div className={`home-page transition-all ${fadeIn ? 'opacity-100' : 'opacity-0'}`}>
-      {/* 背景动态元素 */}
-      <div className="animated-background">
-        <div className="floating-shape shape1"></div>
-        <div className="floating-shape shape2"></div>
-        <div className="floating-shape shape3"></div>
-        <div className="floating-shape shape4"></div>
-        <div className="floating-shape shape5"></div>
-        <div className="floating-shape shape6"></div>
-        
-        {/* 金融相关元素 */}
-        <div className="finance-icon finance-icon-1">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm0-12.95L16.95 12 12 16.95 7.05 12 12 7.05zm0 2.829L9.88 12 12 14.12 14.12 12 12 9.879z" fill="rgba(78, 115, 223, 0.15)"/></svg>
-        </div>
-        <div className="finance-icon finance-icon-2">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 1l8.217 14H3.783L12 1zm0 3.24L6.22 13h11.56L12 4.24zM3 20h18v2H3v-2z" fill="rgba(72, 187, 120, 0.15)"/></svg>
-        </div>
-        <div className="finance-icon finance-icon-3">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48"><path fill="none" d="M0 0h24v24H0z"/><path d="M22 7h1v10h-1v3a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v3zm-2 10h-6a5 5 0 0 1 0-10h6V5H4v14h16v-2zm1-2V9h-7a3 3 0 0 0 0 6h7zm-7-4h3v2h-3v-2z" fill="rgba(255, 193, 7, 0.15)"/></svg>
-        </div>
-        <div className="finance-icon finance-icon-4">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32"><path fill="none" d="M0 0h24v24H0z"/><path d="M3 3h18a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm17 8H4v8h16v-8zm0-2V5H4v4h16zm-6 6h4v2h-4v-2z" fill="rgba(66, 153, 225, 0.15)"/></svg>
-        </div>
-        <div className="finance-icon finance-icon-5">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40"><path fill="none" d="M0 0h24v24H0z"/><path d="M21 8v12.993A1 1 0 0 1 20.007 22H3.993A.993.993 0 0 1 3 21.008V2.992C3 2.455 3.449 2 4.002 2h10.995L21 8zm-2 1h-5V4H5v16h14V9zM8 7h3v2H8V7zm0 4h8v2H8v-2zm0 4h8v2H8v-2z" fill="rgba(78, 115, 223, 0.15)"/></svg>
-        </div>
-      </div>
-      
-      {/* 添加跟随投资表现组件 */}
-      {currentUser && <InvestmentPerformance userData={currentUser} />}
-      
-      {/* 现代化英雄区 */}
-      <section className="hero-section position-relative overflow-hidden py-5 mb-6">
-        <div className="position-absolute top-0 start-0 w-100 h-100 bg-gradient-primary rounded-5" style={{ zIndex: -1 }}></div>
-        <div className="position-absolute top-0 start-0 w-100 h-100 hero-pattern-overlay rounded-5" style={{ zIndex: -1, opacity: 0.15 }}></div>
-        
-        <Container>
-          <Row className="align-items-center py-5">
-            <Col lg={6} className="mb-5 mb-lg-0">
-              <div className="hero-content text-center text-lg-start">
-                <EnhancedBadge bg="light" className="mb-3 shadow-sm animate__animated animate__fadeIn animate__delay-1s">
-                  <span className="pulse-dot me-2"></span>
-                  <span className="text-primary fw-medium">智能金融助手</span>
+      {/* 现代化英雄区 - 高级深色科技感 */}
+      <section className="hero-section position-relative overflow-hidden" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', background: '#0a0f1e', margin: 0, padding: 0 }}>
+        {/* 背景动态元素 - 替换为美观的粒子星空 */}
+        <ParticleBackground />
+
+        <Container className="position-relative z-1">
+          <Row className="align-items-center">
+            <Col lg={12} className="text-center mx-auto">
+              <div className="hero-content">
+                <EnhancedBadge bg="transparent" className="mb-4 shadow-sm animate__animated animate__fadeIn animate__delay-1s border border-light">
+                  <span className="pulse-dot me-2 bg-info"></span>
+                  <span className="text-info fw-medium" style={{ textShadow: '0 0 10px rgba(0, 255, 255, 0.5)' }}>全新体验 · 智能升级</span>
                 </EnhancedBadge>
-                <h1 className="display-4 fw-bold mb-4 text-white">
-                  财赋思 - <span className="text-warning typed-text fs-2">
+
+                <h1 className="display-2 fw-bold mb-4 text-white animate__animated animate__fadeInDown" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8)' }}>
+                  Experience <span className="text-info">Liftoff</span> with <br />
+                  <span className="text-warning typed-text mt-2 d-inline-block" style={{ borderBottom: '2px solid #ffc107', paddingBottom: '5px' }}>
                     <span ref={typedElementRef}></span>
                   </span>
                 </h1>
-                <p className="lead mb-5 text-white-50 animate__animated animate__fadeIn animate__delay-2s">
-                  通过人工智能技术，帮助您培养健康的财务习惯，提升金融素养，做出更明智的财务决策。
+
+                <p className="lead mb-5 text-light mx-auto animate__animated animate__fadeIn animate__delay-2s" style={{ maxWidth: '800px', fontSize: '1.25rem', textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
+                  财赋思 - AI金融心智教练。通过人工智能技术，帮助您培养健康的财务习惯，提升金融素养，做出更明智的财务决策。现在就开启您的下一代财务成长之旅。
                 </p>
-                
-                <div className="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start animate__animated animate__fadeIn animate__delay-3s">
-          {currentUser ? (
-                    <AnimatedButton 
-                      as={Link} 
-              to="/dashboard" 
-                      variant="light"
+
+                <div className="d-flex gap-4 justify-content-center flex-wrap animate__animated animate__fadeInUp animate__delay-3s" style={{ position: 'relative', zIndex: 10 }}>
+                  {currentUser ? (
+                    <AnimatedButton
+                      as={Link}
+                      to="/dashboard"
+                      variant="info"
                       size="lg"
-                      className="rounded-pill btn-glow px-4 py-2"
-            >
+                      className="rounded-pill btn-glow px-5 py-3 fw-bold text-dark"
+                      style={{ boxShadow: '0 0 20px rgba(23, 162, 184, 0.6)' }}
+                    >
                       进入个人中心 <FaArrowRight className="ms-2" />
                     </AnimatedButton>
-          ) : (
+                  ) : (
                     <>
-                      <AnimatedButton 
-                        as={Link} 
-                to="/register" 
-                        variant="light"
+                      <AnimatedButton
+                        as={Link}
+                        to="/register"
+                        variant="info"
                         size="lg"
-                        className="rounded-pill btn-glow px-4 py-2"
-              >
+                        className="rounded-pill btn-glow px-5 py-3 fw-bold text-dark"
+                        style={{ boxShadow: '0 0 20px rgba(23, 162, 184, 0.6)' }}
+                      >
                         免费注册 <FaArrowRight className="ms-2" />
                       </AnimatedButton>
-                      <AnimatedButton 
-                        as={Link} 
-                to="/login" 
+                      <AnimatedButton
+                        as={Link}
+                        to="/login"
                         variant="outline-light"
                         size="lg"
-                        className="rounded-pill px-4 py-2"
-              >
+                        className="rounded-pill px-5 py-3 fw-bold bg-dark bg-opacity-50 text-white"
+                        style={{ backdropFilter: 'blur(5px)' }}
+                      >
                         立即登录
                       </AnimatedButton>
                     </>
-          )}
-        </div>
-              </div>
-            </Col>
-            
-            <Col lg={6}>
-              <div className="hero-image position-relative animate__animated animate__fadeInRight animate__delay-2s">
-                <div className="image-blob-shape"></div>
-                <img 
-                  src="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1471&q=80" 
-                  alt="财务规划" 
-                  className="img-fluid rounded-4 shadow-lg position-relative" 
-                />
-                <div className="hero-image-dots"></div>
+                  )}
+                </div>
               </div>
             </Col>
           </Row>
@@ -392,17 +357,17 @@ const Home = () => {
               我们结合人工智能和金融心理学，帮助您建立健康的财务习惯，做出更明智的财务决策。
             </p>
           </div>
-          
+
           <Row className="g-4">
             <Col md={6} lg={4} className="animate__animated animate__fadeInUp" style={{ animationDelay: '0.1s' }}>
-              <FeatureCard 
+              <FeatureCard
                 icon={<FaBrain size={24} />}
                 title="金融心智培养"
                 description="通过科学方法和个性化指导，帮助您建立健康的金钱观念和财务习惯。"
               />
             </Col>
             <Col md={6} lg={4} className="animate__animated animate__fadeInUp" style={{ animationDelay: '0.3s' }}>
-              <FeatureCard 
+              <FeatureCard
                 icon={<FaRobot size={24} />}
                 title="AI智能教练"
                 description="基于先进AI技术的个人教练，根据您的财务状况和目标提供定制化建议。"
@@ -410,28 +375,28 @@ const Home = () => {
               />
             </Col>
             <Col md={6} lg={4} className="animate__animated animate__fadeInUp" style={{ animationDelay: '0.5s' }}>
-              <FeatureCard 
+              <FeatureCard
                 icon={<FaChartBar size={24} />}
                 title="数据驱动决策"
                 description="通过可视化数据分析，帮助您更好地理解自己的财务状况和进步。"
               />
             </Col>
             <Col md={6} lg={4} className="animate__animated animate__fadeInUp" style={{ animationDelay: '0.7s' }}>
-              <FeatureCard 
+              <FeatureCard
                 icon={<FaShieldAlt size={24} />}
                 title="隐私保护"
                 description="我们严格保护您的个人信息和财务数据，确保您的隐私安全。"
               />
             </Col>
             <Col md={6} lg={4} className="animate__animated animate__fadeInUp" style={{ animationDelay: '0.9s' }}>
-              <FeatureCard 
+              <FeatureCard
                 icon={<FaComments size={24} />}
                 title="个性化互动"
                 description="根据您的财务目标和习惯，提供量身定制的建议和反馈。"
               />
             </Col>
             <Col md={6} lg={4} className="animate__animated animate__fadeInUp" style={{ animationDelay: '1.1s' }}>
-              <FeatureCard 
+              <FeatureCard
                 icon={<FaChartLine size={24} />}
                 title="成长跟踪"
                 description="持续监测您的财务健康状况，并提供改进建议和鼓励。"
@@ -452,9 +417,9 @@ const Home = () => {
             </EnhancedBadge>
             <h2 className="display-5 fw-bold mb-4">他们的体验</h2>
           </div>
-          
+
           {/* 重新设计的轮播效果 */}
-          <div 
+          <div
             className="testimonial-carousel"
             onMouseEnter={pauseSlideInterval}
             onMouseLeave={startSlideInterval}
@@ -476,7 +441,7 @@ const Home = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* 第二个评价 */}
               <div className={`testimonial-item ${currentSlide === 1 ? 'active' : ''}`}>
                 <div className="testimonial-content-wrapper bg-white p-4 p-lg-5 rounded-4 shadow-sm mx-auto">
@@ -494,7 +459,7 @@ const Home = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* 第三个评价 */}
               <div className={`testimonial-item ${currentSlide === 2 ? 'active' : ''}`}>
                 <div className="testimonial-content-wrapper bg-white p-4 p-lg-5 rounded-4 shadow-sm mx-auto">
@@ -512,7 +477,7 @@ const Home = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* 第四个评价 */}
               <div className={`testimonial-item ${currentSlide === 3 ? 'active' : ''}`}>
                 <div className="testimonial-content-wrapper bg-white p-4 p-lg-5 rounded-4 shadow-sm mx-auto">
@@ -549,10 +514,10 @@ const Home = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* 控制按钮 */}
             <div className="testimonial-controls mt-5 d-flex justify-content-center align-items-center">
-              <button 
+              <button
                 className="testimonial-btn prev-btn me-4"
                 onClick={goToPrevSlide}
                 onMouseEnter={pauseSlideInterval}
@@ -560,24 +525,24 @@ const Home = () => {
                 aria-label="上一条评价"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-left" viewBox="0 0 16 16">
-                  <path fillRule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                  <path fillRule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
                 </svg>
               </button>
-              
+
               <div className="testimonial-indicators d-flex">
                 {[...Array(totalSlides)].map((_, index) => (
-                  <button 
-                    key={index} 
+                  <button
+                    key={index}
                     className={`testimonial-indicator mx-2 ${currentSlide === index ? 'active' : ''}`}
                     onClick={() => goToSlide(index)}
                     onMouseEnter={pauseSlideInterval}
                     onMouseLeave={startSlideInterval}
-                    aria-label={`切换到第${index+1}条评价`}
+                    aria-label={`切换到第${index + 1}条评价`}
                   ></button>
                 ))}
               </div>
-              
-              <button 
+
+              <button
                 className="testimonial-btn next-btn ms-4"
                 onClick={goToNextSlide}
                 onMouseEnter={pauseSlideInterval}
@@ -585,7 +550,7 @@ const Home = () => {
                 aria-label="下一条评价"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-right" viewBox="0 0 16 16">
-                  <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                  <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
                 </svg>
               </button>
             </div>
@@ -606,11 +571,11 @@ const Home = () => {
               只需简单几步，即可开启您的财务成长之旅。
             </p>
           </div>
-          
+
           <Row className="g-4 position-relative steps-container">
             {/* 连接线 */}
             <div className="position-absolute steps-connector d-none d-lg-block"></div>
-            
+
             <Col lg={4} className="animate__animated animate__fadeInUp" style={{ animationDelay: '0.1s' }}>
               <div className="step-item text-center p-4 card-hover">
                 <div className="step-number bg-primary text-white rounded-circle mx-auto mb-4 fs-3 fw-bold d-flex align-items-center justify-content-center pulse" style={{ width: '60px', height: '60px' }}>1</div>
@@ -618,7 +583,7 @@ const Home = () => {
                 <p className="text-muted">通过简短的问卷了解您当前的财务状况和理财习惯，发现潜在的改进空间。</p>
               </div>
             </Col>
-            
+
             <Col lg={4} className="animate__animated animate__fadeInUp" style={{ animationDelay: '0.3s' }}>
               <div className="step-item text-center p-4 card-hover">
                 <div className="step-number bg-primary text-white rounded-circle mx-auto mb-4 fs-3 fw-bold d-flex align-items-center justify-content-center pulse" style={{ width: '60px', height: '60px', animationDelay: '0.5s' }}>2</div>
@@ -626,13 +591,13 @@ const Home = () => {
                 <p className="text-muted">AI教练会根据您的情况制定适合您的财务目标和改进计划，帮助您更好地管理财务。</p>
               </div>
             </Col>
-            
+
             <Col lg={4} className="animate__animated animate__fadeInUp" style={{ animationDelay: '0.5s' }}>
               <div className="step-item text-center p-4 card-hover">
                 <div className="step-number bg-primary text-white rounded-circle mx-auto mb-4 fs-3 fw-bold d-flex align-items-center justify-content-center pulse" style={{ width: '60px', height: '60px', animationDelay: '1s' }}>3</div>
                 <h3 className="h4 mb-3">持续指导与成长</h3>
                 <p className="text-muted">通过定期与AI教练对话，获取建议并跟踪您的财务进步，不断优化您的财务习惯。</p>
-        </div>
+              </div>
             </Col>
           </Row>
         </Container>
@@ -647,42 +612,42 @@ const Home = () => {
           <p className="lead mb-5 mx-auto" style={{ maxWidth: '700px' }}>
             加入财赋思，开启您的财务成长之旅。现在注册，即可免费获得财务健康评估！
           </p>
-          
-        {currentUser ? (
-            <AnimatedButton 
+
+          {currentUser ? (
+            <AnimatedButton
               as={Link}
-            to="/assessment" 
-              variant="light" 
+              to="/assessment"
+              variant="light"
               size="lg"
               className="rounded-pill btn-glow px-4 py-2"
-          >
+            >
               开始财务评估 <FaArrowRight className="ms-2" />
             </AnimatedButton>
-        ) : (
+          ) : (
             <div className="d-flex flex-column flex-sm-row gap-3 justify-content-center">
-              <AnimatedButton 
+              <AnimatedButton
                 as={Link}
-            to="/register" 
-                variant="light" 
+                to="/register"
+                variant="light"
                 size="lg"
                 className="rounded-pill btn-glow px-4 py-2"
               >
                 免费注册 <FaArrowRight className="ms-2" />
               </AnimatedButton>
-              <AnimatedButton 
+              <AnimatedButton
                 as={Link}
-                to="/login" 
-                variant="outline-light" 
+                to="/login"
+                variant="outline-light"
                 size="lg"
                 className="rounded-pill px-4 py-2"
-          >
+              >
                 立即登录
               </AnimatedButton>
             </div>
-        )}
+          )}
         </Container>
       </section>
-      
+
       {/* 自定义CSS */}
       <style jsx>{`
         .bg-gradient-primary {

@@ -1,8 +1,15 @@
 from flask import current_app
-from firebase_admin import firestore
 import datetime
 import uuid
 import json
+
+try:
+    from firebase_admin import firestore
+except Exception as e:
+    print(f"Warning: firebase_admin could not be imported (Python 3.14 metaclass issue): {e}")
+    class MockFirestore:
+        SERVER_TIMESTAMP = "SERVER_TIMESTAMP"
+    firestore = MockFirestore()
 
 # --- Firestore Global Variables (Provided by Canvas Environment) ---
 # These are placeholders. In a real Canvas environment, these would be injected.
@@ -20,21 +27,30 @@ _dev_db = {
     }
 }
 
+import os
+
 def get_db():
     """Helper function to get the Firestore client instance."""
-    if hasattr(current_app, 'config') and current_app.config.get('DEV_MODE'):
+    if is_dev_mode():
         # 在开发模式下返回None，表示使用内存存储
         return None
         
     if not hasattr(current_app, 'db') or current_app.db is None:
         # This indicates Firebase Admin SDK was not initialized correctly.
-        # In a real app, you might want to raise an error or try re-initializing.
-        print("Firestore client (current_app.db) is not available.")
+        # Fallback to dev mode behavior if db is not available
         return None
     return current_app.db
 
 def is_dev_mode():
     """检查是否处于开发模式"""
+    # 优先检查环境变量，因为app config可能没有被正确设置
+    if os.environ.get('DEV_MODE') == 'true':
+        return True
+    
+    # 获取 db，如果没有 db （例如 Python 3.14 下因为 metaclass 无法导入）也强制视作开发模式使用内存DB
+    if not getattr(current_app, 'db', None):
+        return True
+        
     return hasattr(current_app, 'config') and current_app.config.get('DEV_MODE')
 
 def get_user_collection_path(user_id, collection_name):

@@ -3,7 +3,8 @@ import os
 class Config:
     """应用配置"""
     # 智谱AI API密钥
-    ZHIPUAI_API_KEY = os.environ.get("ZHIPUAI_API_KEY", "d569cc60785b4cd8a9cc3c033ac5a72f.MmbuHzbqGEsGntG5")
+    # 请在 .env.local 文件中配置，或访问 https://open.bigmodel.cn/ 获取
+    ZHIPUAI_API_KEY = os.environ.get("ZHIPUAI_API_KEY", "YOUR_API_KEY_HERE")
     
     # 应用设置
     DEBUG = os.environ.get("DEBUG", "true").lower() == "true"

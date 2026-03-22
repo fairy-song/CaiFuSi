@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Container, Row, Col, Card, Button, Badge, ProgressBar } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Badge, ProgressBar, Modal, Form } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { FaChartLine, FaPiggyBank, FaWallet, FaExchangeAlt, FaRobot, FaCoins, FaChartPie, FaMoneyBillWave } from 'react-icons/fa';
+import { FaChartLine, FaPiggyBank, FaWallet, FaExchangeAlt, FaRobot, FaCoins, FaChartPie, FaMoneyBillWave, FaEdit } from 'react-icons/fa';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 // 增强型徽章组件
@@ -21,6 +21,10 @@ const EnhancedBadge = ({ children, bg, className = '' }) => {
 const Dashboard = () => {
   const { currentUser } = useAuth();
   const [userData, setUserData] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editType, setEditType] = useState(''); // 'savings' or 'budget'
+  const [editValue, setEditValue] = useState('');
+  const [savingsGoal, setSavingsGoal] = useState(20000); // 储蓄目标金额
 
   useEffect(() => {
     // 在实际应用中，这里会从API获取用户数据
@@ -42,6 +46,44 @@ const Dashboard = () => {
 
     setUserData(mockUserData);
   }, [currentUser]);
+
+  // 打开编辑模态框
+  const handleOpenEdit = (type) => {
+    setEditType(type);
+    if (type === 'savings') {
+      setEditValue(savingsGoal.toString());
+    } else if (type === 'budget') {
+      setEditValue(userData.monthlyBudget.toString());
+    }
+    setShowEditModal(true);
+  };
+
+  // 保存编辑
+  const handleSaveEdit = () => {
+    const value = parseFloat(editValue);
+    if (isNaN(value) || value <= 0) {
+      alert('请输入有效的金额');
+      return;
+    }
+
+    if (editType === 'savings') {
+      setSavingsGoal(value);
+      // 重新计算进度
+      const newProgress = Math.min((userData.totalSavings / value) * 100, 100);
+      setUserData({
+        ...userData,
+        savingsGoalProgress: Math.round(newProgress)
+      });
+    } else if (editType === 'budget') {
+      setUserData({
+        ...userData,
+        monthlyBudget: value
+      });
+    }
+
+    setShowEditModal(false);
+    // TODO: 在实际应用中，这里应该调用API保存数据
+  };
 
   if (!userData) {
     return (
@@ -119,16 +161,27 @@ const Dashboard = () => {
           <Col md={4}>
             <Card className="h-100 border-0 rounded-4 shadow-sm dashboard-card">
               <Card.Body className="p-4">
-                <div className="d-flex align-items-center mb-3">
-                  <div className="icon-container bg-info-light rounded-circle d-flex align-items-center justify-content-center me-3">
-                    <FaPiggyBank className="text-info" />
+                <div className="d-flex align-items-center justify-content-between mb-3">
+                  <div className="d-flex align-items-center">
+                    <div className="icon-container bg-info-light rounded-circle d-flex align-items-center justify-content-center me-3">
+                      <FaPiggyBank className="text-info" />
+                    </div>
+                    <h5 className="card-title mb-0">储蓄目标</h5>
                   </div>
-                  <h5 className="card-title mb-0">储蓄目标</h5>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="text-info p-0"
+                    onClick={() => handleOpenEdit('savings')}
+                    title="编辑储蓄目标"
+                  >
+                    <FaEdit size={18} />
+                  </Button>
                 </div>
                 <div className="progress-container mb-2">
-                  <ProgressBar 
-                    now={userData.savingsGoalProgress} 
-                    variant="info" 
+                  <ProgressBar
+                    now={userData.savingsGoalProgress}
+                    variant="info"
                     className="progress-bar-thick"
                   />
                 </div>
@@ -137,9 +190,13 @@ const Dashboard = () => {
                   <span className="fw-bold">{userData.savingsGoalProgress}%</span>
                 </div>
                 <div className="mt-3 pt-3 border-top">
-                  <div className="d-flex justify-content-between">
+                  <div className="d-flex justify-content-between mb-2">
                     <span className="text-muted">总储蓄</span>
                     <span className="fw-bold">¥{userData.totalSavings.toLocaleString()}</span>
+                  </div>
+                  <div className="d-flex justify-content-between">
+                    <span className="text-muted">目标金额</span>
+                    <span className="fw-bold text-info">¥{savingsGoal.toLocaleString()}</span>
                   </div>
                 </div>
               </Card.Body>
@@ -149,11 +206,22 @@ const Dashboard = () => {
           <Col md={4}>
             <Card className="h-100 border-0 rounded-4 shadow-sm dashboard-card">
               <Card.Body className="p-4">
-                <div className="d-flex align-items-center mb-3">
-                  <div className="icon-container bg-warning-light rounded-circle d-flex align-items-center justify-content-center me-3">
-                    <FaWallet className="text-warning" />
+                <div className="d-flex align-items-center justify-content-between mb-3">
+                  <div className="d-flex align-items-center">
+                    <div className="icon-container bg-warning-light rounded-circle d-flex align-items-center justify-content-center me-3">
+                      <FaWallet className="text-warning" />
+                    </div>
+                    <h5 className="card-title mb-0">本月预算</h5>
                   </div>
-                  <h5 className="card-title mb-0">本月预算</h5>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="text-warning p-0"
+                    onClick={() => handleOpenEdit('budget')}
+                    title="编辑本月预算"
+                  >
+                    <FaEdit size={18} />
+                  </Button>
                 </div>
                 <h2 className="fw-bold mb-3">¥{userData.monthlyBudget.toLocaleString()}</h2>
                 <div className="d-flex justify-content-between mb-1">
@@ -455,8 +523,48 @@ const Dashboard = () => {
           transform: translateY(-2px);
         }
       `}</style>
+
+      {/* 编辑模态框 */}
+      <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {editType === 'savings' ? '编辑储蓄目标' : '编辑本月预算'}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group>
+              <Form.Label>
+                {editType === 'savings' ? '目标金额 (¥)' : '预算金额 (¥)'}
+              </Form.Label>
+              <Form.Control
+                type="number"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                placeholder="请输入金额"
+                min="0"
+                step="100"
+              />
+              <Form.Text className="text-muted">
+                {editType === 'savings'
+                  ? `当前储蓄: ¥${userData?.totalSavings.toLocaleString()}`
+                  : `当前已花费: ¥${userData?.monthlySpending.toLocaleString()}`
+                }
+              </Form.Text>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowEditModal(false)}>
+            取消
+          </Button>
+          <Button variant="primary" onClick={handleSaveEdit}>
+            保存
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
 
-export default Dashboard; 
+export default Dashboard;

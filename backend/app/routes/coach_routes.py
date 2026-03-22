@@ -13,8 +13,8 @@ try:
     from ..services.zhipuai_service import ZhipuAIService
     zhipuai_service = ZhipuAIService()
     logger.info("成功导入ZhipuAIService")
-except ImportError as e:
-    logger.error(f"导入ZhipuAIService失败: {e}")
+except Exception as e:
+    logger.error(f"导入或初始化ZhipuAIService失败: {e}")
     logger.error(traceback.format_exc())
     # 尝试使用备选导入路径
     try:
@@ -28,7 +28,7 @@ except ImportError as e:
         from backend.services.zhipuai_service import ZhipuAIService
         zhipuai_service = ZhipuAIService()
         logger.info("通过备选路径导入ZhipuAIService成功")
-    except ImportError as e:
+    except Exception as e:
         logger.error(f"备选导入ZhipuAIService也失败: {e}")
         logger.error(traceback.format_exc())
         # 创建一个简单的模拟服务

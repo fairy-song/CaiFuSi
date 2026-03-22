@@ -9,9 +9,28 @@ def create_app():
         print("开始创建Flask应用...")
         app = Flask(__name__)
         
-        # 配置跨域资源共享
+        # 配置跨域资源共享 - 限制允许的来源以提高安全性
         print("配置CORS...")
-        CORS(app, resources={r"/api/*": {"origins": "*"}})
+        allowed_origins = [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "https://xiaocow666.github.io",  # GitHub Pages
+        ]
+        
+        # 从环境变量读取额外的允许来源
+        extra_origins = os.environ.get('CORS_ALLOWED_ORIGINS', '')
+        if extra_origins:
+            allowed_origins.extend([origin.strip() for origin in extra_origins.split(',')])
+        
+        CORS(app, resources={
+            r"/api/*": {
+                "origins": allowed_origins,
+                "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                "allow_headers": ["Content-Type", "Authorization"],
+                "supports_credentials": True
+            }
+        })
+        print(f"CORS 配置完成，允许的来源: {allowed_origins}")
         
         # 加载配置
         try:
@@ -30,51 +49,61 @@ def create_app():
         print("确保services目录存在...")
         os.makedirs(os.path.join(app.root_path, 'services'), exist_ok=True)
         
-        # 注册蓝图 (routes)
+        # 注册蓝图 (routes) - 使用真实的AI服务
         try:
-            print("尝试注册coach_bp蓝图...")
-            # 打印模块搜索路径
-            print(f"模块搜索路径: {sys.path}")
-            # 打印当前目录结构
-            print(f"当前目录: {os.path.abspath('.')}")
-            print(f"app目录: {app.root_path}")
-            
-            try:
-                print("列出routes目录内容:")
-                routes_dir = os.path.join(app.root_path, 'routes')
-                if os.path.exists(routes_dir):
-                    for item in os.listdir(routes_dir):
-                        print(f" - {item}")
-                else:
-                    print(f" 目录不存在: {routes_dir}")
-            except Exception as le:
-                print(f"列出目录内容失败: {le}")
-            
-            # 创建一个简单的蓝图
-            from flask import Blueprint, jsonify
-            
-            print("创建默认coach_bp蓝图...")
-            coach_bp = Blueprint('coach', __name__)
-            
-            @coach_bp.route('/chat', methods=['POST'])
-            def chat():
-                return jsonify({
-                    "status": "success", 
-                    "reply": "这是一个测试回复。AI服务正在启动中..."
-                })
-                
-            @coach_bp.route('/health', methods=['GET'])
-            def health():
-                return jsonify({
-                    "status": "ok",
-                    "message": "AI教练服务正在运行"
-                })
-                
-            print("注册简单coach_bp蓝图...")
+            print("尝试导入真实的coach_routes...")
+            from .routes.coach_routes import coach_bp
             app.register_blueprint(coach_bp, url_prefix='/api/coach')
-            print("注册coach_bp成功")
+            print("✓ 成功注册真实的AI教练服务")
+        except ImportError as e:
+            print(f"导入coach_routes失败: {e}")
+            print("尝试使用备用导入方式...")
+            try:
+                # 备用导入方式
+                import sys
+                sys.path.insert(0, app.root_path)
+                from routes.coach_routes import coach_bp
+                app.register_blueprint(coach_bp, url_prefix='/api/coach')
+                print("✓ 通过备用方式成功注册AI教练服务")
+            except Exception as e2:
+                print(f"备用导入也失败: {e2}")
+                # 如果都失败，创建一个错误提示蓝图
+                from flask import Blueprint, jsonify
+                coach_bp = Blueprint('coach', __name__)
+                
+                @coach_bp.route('/chat', methods=['POST'])
+                def chat():
+                    return jsonify({
+                        "status": "error",
+                        "message": "AI服务加载失败，请检查后端日志"
+                    }), 500
+                    
+                app.register_blueprint(coach_bp, url_prefix='/api/coach')
+                print("✗ 使用错误提示蓝图")
         except Exception as e:
-            print(f"注册coach_bp失败: {e}")
+            print(f"注册蓝图时出错: {e}")
+            import traceback
+            traceback.print_exc()
+        
+        # 注册Dashboard路由
+        try:
+            print("尝试导入dashboard_routes...")
+            from .routes.dashboard_routes import dashboard_bp
+            app.register_blueprint(dashboard_bp, url_prefix='/api/dashboard')
+            print("✓ 成功注册Dashboard服务")
+        except Exception as e:
+            print(f"注册Dashboard路由失败: {e}")
+            import traceback
+            traceback.print_exc()
+        
+        # 注册Assessment路由
+        try:
+            print("尝试导入assessment_routes...")
+            from .routes.assessment_routes import assessment_bp
+            app.register_blueprint(assessment_bp, url_prefix='/api/assessment')
+            print("✓ 成功注册Assessment服务")
+        except Exception as e:
+            print(f"注册Assessment路由失败: {e}")
             import traceback
             traceback.print_exc()
         

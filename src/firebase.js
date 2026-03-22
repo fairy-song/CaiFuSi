@@ -6,17 +6,32 @@ import { getAuth } from "firebase/auth"; // 导入 Firebase Authentication
 import { getFirestore } from "firebase/firestore"; // 导入 Firestore 数据库
 // import { getAnalytics } from "firebase/analytics"; // 如果你需要分析功能，也取消注释这一行
 
-// 2. 你的 Web 应用的 Firebase 配置 (从你的图片中获取)
-// 重要：请确保这些值与你在 Firebase 控制台中看到的一致
+// 2. 你的 Web 应用的 Firebase 配置
+// 重要：从环境变量读取配置，而不是硬编码
+// 在 .env.local 文件中配置这些值
 const firebaseConfig = {
-  apiKey: "AIzaSyCX-PVrbMht7JMVuTqK1Mo126sg7h3Qh3g", // 这是示例，请使用你图片中的真实值
-  authDomain: "caifusi.firebaseapp.com",
-  projectId: "caifusi",
-  storageBucket: "caifusi.firebasestorage.app",
-  messagingSenderId: "739790071042",
-  appId: "1:739790071042:web:2b08642ba1827e02b750e1b",
-  measurementId: "G-GQMDX13B3R"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
+
+// 验证必需的配置项
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  console.error(
+    'Firebase 配置缺失！请在 .env.local 文件中配置以下环境变量：\n' +
+    '- REACT_APP_FIREBASE_API_KEY\n' +
+    '- REACT_APP_FIREBASE_AUTH_DOMAIN\n' +
+    '- REACT_APP_FIREBASE_PROJECT_ID\n' +
+    '- REACT_APP_FIREBASE_STORAGE_BUCKET\n' +
+    '- REACT_APP_FIREBASE_MESSAGING_SENDER_ID\n' +
+    '- REACT_APP_FIREBASE_APP_ID\n' +
+    '- REACT_APP_FIREBASE_MEASUREMENT_ID'
+  );
+}
 
 // 3. 初始化 Firebase 应用
 const app = initializeApp(firebaseConfig);

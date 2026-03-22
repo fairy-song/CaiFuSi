@@ -146,6 +146,7 @@ export function AuthProvider({ children }) {
     loading,
     error,
     signup,
+    register: signup, // 添加register别名
     login,
     logout,
     fetchUserProfile
