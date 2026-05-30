@@ -35,11 +35,15 @@ def get_db():
         # 在开发模式下返回None，表示使用内存存储
         return None
         
-    if not hasattr(current_app, 'db') or current_app.db is None:
-        # This indicates Firebase Admin SDK was not initialized correctly.
-        # Fallback to dev mode behavior if db is not available
+    try:
+        from flask import has_app_context, current_app
+        if not has_app_context():
+            return None
+        if not hasattr(current_app, 'db') or current_app.db is None:
+            return None
+        return current_app.db
+    except Exception:
         return None
-    return current_app.db
 
 def is_dev_mode():
     """检查是否处于开发模式"""
@@ -47,25 +51,69 @@ def is_dev_mode():
     if os.environ.get('DEV_MODE') == 'true':
         return True
     
-    # 获取 db，如果没有 db （例如 Python 3.14 下因为 metaclass 无法导入）也强制视作开发模式使用内存DB
-    if not getattr(current_app, 'db', None):
+    try:
+        from flask import has_app_context, current_app
+        if not has_app_context():
+            return True
+        # 获取 db，如果没有 db （例如 Python 3.14 下因为 metaclass 无法导入）也强制视作开发模式使用内存DB
+        if not getattr(current_app, 'db', None):
+            return True
+        return hasattr(current_app, 'config') and current_app.config.get('DEV_MODE')
+    except Exception:
         return True
-        
-    return hasattr(current_app, 'config') and current_app.config.get('DEV_MODE')
+
+def is_mysql_mode():
+    """检查是否处于 MySQL 模式"""
+    try:
+        from flask import has_app_context, current_app
+        if has_app_context() and current_app.config.get('DB_TYPE') == 'mysql':
+            return True
+    except Exception:
+        pass
+    return os.environ.get('DB_TYPE') == 'mysql'
 
 def get_user_collection_path(user_id, collection_name):
     """Constructs the path for a user's private collection."""
-    app_id = getattr(current_app, '__app_id', __app_id) # Use app_id from current_app if set
+    try:
+        from flask import has_app_context, current_app
+        if has_app_context():
+            app_id = getattr(current_app, '__app_id', __app_id) # Use app_id from current_app if set
+        else:
+            app_id = __app_id
+    except Exception:
+        app_id = __app_id
     return f"artifacts/{app_id}/users/{user_id}/{collection_name}"
 
 def get_public_collection_path(collection_name):
     """Constructs the path for a public collection."""
-    app_id = getattr(current_app, '__app_id', __app_id)
+    try:
+        from flask import has_app_context, current_app
+        if has_app_context():
+            app_id = getattr(current_app, '__app_id', __app_id)
+        else:
+            app_id = __app_id
+    except Exception:
+        app_id = __app_id
     return f"artifacts/{app_id}/public/data/{collection_name}"
 
 # --- User Management ---
 def create_user_profile(user_id, email, display_name=""):
-    """Creates a new user profile document in Firestore."""
+    """Creates a new user profile document in Firestore/MySQL."""
+    if is_mysql_mode():
+        try:
+            from app.utils.db_mysql import MySQLHelper
+            display = display_name or email.split('@')[0]
+            sql = """
+                INSERT INTO users (id, email, display_name, created_at, last_login, assessment_completed)
+                VALUES (%s, %s, %s, NOW(), NOW(), 0)
+                ON DUPLICATE KEY UPDATE
+                email = VALUES(email), display_name = VALUES(display_name)
+            """
+            MySQLHelper.execute_update(sql, (user_id, email, display))
+            return user_id, None
+        except Exception as e:
+            return None, str(e)
+
     db = get_db()
     
     if is_dev_mode():
@@ -101,7 +149,25 @@ def create_user_profile(user_id, email, display_name=""):
         return None, str(e)
 
 def get_user_profile(user_id):
-    """Retrieves a user profile from Firestore."""
+    """Retrieves a user profile from Firestore/MySQL."""
+    if is_mysql_mode():
+        try:
+            from app.utils.db_mysql import MySQLHelper
+            sql = "SELECT * FROM users WHERE id = %s"
+            row = MySQLHelper.execute_one(sql, (user_id,))
+            if row:
+                return {
+                    'email': row['email'],
+                    'displayName': row['display_name'],
+                    'createdAt': row['created_at'].isoformat() if row['created_at'] else None,
+                    'lastLogin': row['last_login'].isoformat() if row['last_login'] else None,
+                    'assessmentCompleted': bool(row['assessment_completed']),
+                    'goals': []
+                }, None
+            return None, "User not found"
+        except Exception as e:
+            return None, str(e)
+
     db = get_db()
     
     if is_dev_mode():
@@ -122,7 +188,37 @@ def get_user_profile(user_id):
         return None, str(e)
 
 def update_user_profile(user_id, data_to_update):
-    """Updates a user profile in Firestore."""
+    """Updates a user profile in Firestore/MySQL."""
+    if is_mysql_mode():
+        try:
+            from app.utils.db_mysql import MySQLHelper
+            fields = []
+            params = []
+            
+            mappings = {
+                'email': 'email',
+                'displayName': 'display_name',
+                'assessmentCompleted': 'assessment_completed'
+            }
+            
+            for k, v in data_to_update.items():
+                if k in mappings:
+                    fields.append(f"{mappings[k]} = %s")
+                    params.append(1 if isinstance(v, bool) and v else (0 if isinstance(v, bool) and not v else v))
+                elif k == 'lastLogin':
+                    fields.append("last_login = NOW()")
+            
+            if not fields and 'lastLogin' not in data_to_update:
+                fields.append("last_login = NOW()")
+            
+            sql = f"UPDATE users SET {', '.join(fields)} WHERE id = %s"
+            params.append(user_id)
+            
+            MySQLHelper.execute_update(sql, params)
+            return True, None
+        except Exception as e:
+            return False, str(e)
+
     db = get_db()
     
     if is_dev_mode():
@@ -151,6 +247,15 @@ def update_user_profile(user_id, data_to_update):
 # --- Assessment Data ---
 def save_assessment_results(user_id, assessment_data):
     """Saves assessment results for a user."""
+    if is_mysql_mode():
+        from .user_data_service import user_data_service
+        # We need the user profile assessmentCompleted flag updated too
+        update_user_profile(user_id, {"assessmentCompleted": True})
+        success, err = user_data_service.save_user_data(user_id, 'assessments', assessment_data)
+        if success:
+            return assessment_data.get('id', 'latest'), None
+        return None, err
+
     db = get_db()
     
     if is_dev_mode():
@@ -182,6 +287,15 @@ def save_assessment_results(user_id, assessment_data):
 
 def get_assessment_results(user_id):
     """Retrieves the latest assessment results for a user."""
+    if is_mysql_mode():
+        from .user_data_service import user_data_service
+        data, err = user_data_service.get_latest_data(user_id, 'assessments')
+        if err:
+            return None, err
+        if not data:
+            return None, "Assessment not found"
+        return data, None
+
     db = get_db()
     
     if is_dev_mode():
@@ -203,6 +317,13 @@ def get_assessment_results(user_id):
 # --- Coach Conversations ---
 def save_coach_message(user_id, message_data):
     """Saves a message from/to the AI coach."""
+    if is_mysql_mode():
+        from .user_data_service import user_data_service
+        success, err = user_data_service.save_user_data(user_id, 'coach_messages', message_data)
+        if success:
+            return message_data.get('id', 'mock_msg_id'), None
+        return None, err
+
     db = get_db()
     
     if is_dev_mode():
@@ -251,6 +372,13 @@ def save_coach_message(user_id, message_data):
 
 def get_coach_history(user_id, limit=20):
     """Retrieves the last N messages from the AI coach conversation."""
+    if is_mysql_mode():
+        from .user_data_service import user_data_service
+        history, err = user_data_service.get_user_data(user_id, 'coach_messages', limit=limit)
+        if err:
+            return [], err
+        return history, None
+
     db = get_db()
     
     if is_dev_mode():

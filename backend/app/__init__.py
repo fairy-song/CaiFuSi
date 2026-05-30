@@ -38,6 +38,15 @@ def create_app():
             from .config import Config
             app.config.from_object(Config)
             print("配置加载成功")
+            
+            # 初始化 MySQL 数据库（如果配置为 mysql 模式）
+            if app.config.get('DB_TYPE') == 'mysql':
+                try:
+                    print("检测到启用了 MySQL 模式，正在检查并初始化数据库表...")
+                    from app.utils.db_mysql import MySQLHelper
+                    MySQLHelper.init_database()
+                except Exception as db_err:
+                    print(f"初始化 MySQL 数据库错误: {db_err}")
         except ImportError as e:
             print(f"导入配置失败: {e}，使用默认配置")
             # 设置默认配置

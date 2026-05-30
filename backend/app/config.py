@@ -14,3 +14,14 @@ class Config:
 
     # Firebase Admin SDK 配置文件路径
     FIREBASE_ADMIN_SDK_PATH = os.environ.get('FIREBASE_ADMIN_SDK_PATH')
+
+    # 数据库类型: memory (内存开发模式), mysql (MySQL 数据库模式), firestore (Firebase Firestore 模式)
+    # 本地调试默认若配置了 DB_TYPE 为 mysql，则启用 MySQL
+    DB_TYPE = os.environ.get('DB_TYPE', 'memory')
+    
+    # MySQL 数据库配置
+    MYSQL_HOST = os.environ.get('MYSQL_HOST', '127.0.0.1')
+    MYSQL_PORT = int(os.environ.get('MYSQL_PORT', 3306))
+    MYSQL_USER = os.environ.get('MYSQL_USER', 'root')
+    MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD', '')
+    MYSQL_DB = os.environ.get('MYSQL_DB', 'caifusi')

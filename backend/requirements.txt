@@ -19,3 +19,7 @@ gunicorn>=21.2.0
 
 # 智谱 AI SDK
 zhipuai>=2.1.5 
+
+# MySQL 数据库驱动及加密支持
+PyMySQL>=1.1.0
+cryptography>=41.0.0
