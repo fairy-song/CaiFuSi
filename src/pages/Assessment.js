@@ -249,11 +249,11 @@ const SparklineChart = ({ history }) => {
             <line
               x1={PADDING.left} y1={yScale(tick)}
               x2={W - PADDING.right} y2={yScale(tick)}
-              stroke="#e9ecef" strokeWidth="1"
+              stroke="rgba(255, 255, 255, 0.1)" strokeWidth="1"
             />
             <text
               x={PADDING.left - 8} y={yScale(tick) + 4}
-              textAnchor="end" fontSize="11" fill="#adb5bd"
+              textAnchor="end" fontSize="11" fill="rgba(255, 255, 255, 0.4)"
             >{tick}%</text>
           </g>
         ))}
@@ -263,7 +263,7 @@ const SparklineChart = ({ history }) => {
           <text
             key={i}
             x={xScale(i)} y={H - 6}
-            textAnchor="middle" fontSize="10" fill="#adb5bd"
+            textAnchor="middle" fontSize="10" fill="rgba(255, 255, 255, 0.4)"
           >
             {formatDate(r.timestamp).slice(5)}
           </text>
@@ -298,7 +298,7 @@ const SparklineChart = ({ history }) => {
         {/* Data point dots for total */}
         {totalValues.map((v, i) => (
           <g key={i}>
-            <circle cx={xScale(i)} cy={yScale(v)} r="5" fill="white" stroke={LINE_COLORS.total} strokeWidth="2.5" />
+            <circle cx={xScale(i)} cy={yScale(v)} r="5" fill="#0f1724" stroke={LINE_COLORS.total} strokeWidth="2.5" />
             <text
               x={xScale(i)} y={yScale(v) - 10}
               textAnchor="middle" fontSize="11"
@@ -897,6 +897,7 @@ const AssessmentStyles = () => (
       position: relative;
       min-height: 100vh;
       padding-bottom: 3rem;
+      color: #fff;
     }
 
     .animated-background {
@@ -905,19 +906,19 @@ const AssessmentStyles = () => (
       width: 100%; height: 100%;
       overflow: hidden;
       z-index: -2;
-      background: linear-gradient(120deg, #f0f8ff 0%, #e6f2ff 100%);
+      background: linear-gradient(180deg, #0f1724 0%, #1a2744 100%);
     }
 
     .floating-shape {
       position: absolute;
-      background: rgba(78, 115, 223, 0.05);
+      background: rgba(255, 193, 7, 0.02);
       border-radius: 50%;
       animation: float 15s infinite ease-in-out;
     }
 
     .shape1 { width: 300px; height: 300px; top: -150px; left: 10%; animation-delay: 0s; }
-    .shape2 { width: 200px; height: 200px; top: 30%; right: -100px; animation-delay: 2s; background: rgba(34,74,190,0.05); }
-    .shape3 { width: 250px; height: 250px; bottom: -125px; left: 20%; animation-delay: 4s; background: rgba(92,159,247,0.05); }
+    .shape2 { width: 200px; height: 200px; top: 30%; right: -100px; animation-delay: 2s; background: rgba(52, 152, 219, 0.03); }
+    .shape3 { width: 250px; height: 250px; bottom: -125px; left: 20%; animation-delay: 4s; background: rgba(255, 255, 255, 0.02); }
 
     @keyframes float {
       0%   { transform: translateY(0) rotate(0deg) scale(1); }
@@ -925,7 +926,60 @@ const AssessmentStyles = () => (
       100% { transform: translateY(0) rotate(0deg) scale(1); }
     }
 
-    .progress-bar-thick { height: 8px; border-radius: 4px; }
+    /* Override Bootstrap Global Colors in this page */
+    .assessment-page .text-muted { color: rgba(255, 255, 255, 0.5) !important; }
+    .assessment-page h1, .assessment-page h2, .assessment-page h3, .assessment-page h4, .assessment-page h5 { color: #fff; }
+    .assessment-page .form-control {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+    .assessment-page .form-control:focus {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 193, 7, 0.3);
+      color: #fff;
+      box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.1);
+    }
+    .assessment-page .alert-success {
+      background: rgba(40, 167, 69, 0.1);
+      color: #28a745;
+      border: 1px solid rgba(40, 167, 69, 0.2);
+    }
+    .assessment-page .alert-danger {
+      background: rgba(220, 53, 69, 0.1);
+      color: #dc3545;
+      border: 1px solid rgba(220, 53, 69, 0.2);
+    }
+    .assessment-page .btn-outline-secondary {
+      color: rgba(255, 255, 255, 0.7);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .assessment-page .btn-outline-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .assessment-page .btn-outline-dark {
+      color: rgba(255, 255, 255, 0.7);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .assessment-page .btn-outline-dark:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    /* Glass Cards */
+    .assessment-page .card {
+      background: rgba(255, 255, 255, 0.05) !important;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      color: #fff;
+    }
+    .assessment-page .card-header {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .progress-bar-thick { height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.1); }
 
     /* Gradient header colours */
     .bg-gradient-success  { background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); }
@@ -949,33 +1003,39 @@ const AssessmentStyles = () => (
     .btn-glow-green:hover { box-shadow: 0 0 20px rgba(28,200,138,0.5); transform: translateY(-2px); }
 
     /* Option buttons */
-    .option-button { transition: all 0.3s ease; }
-    .option-button:hover { background-color: #4e73df; color: white; transform: translateY(-2px); }
+    .option-button { 
+      transition: all 0.3s ease; 
+      background: rgba(255, 255, 255, 0.03); 
+      border-color: rgba(255, 255, 255, 0.1); 
+      color: rgba(255, 255, 255, 0.85); 
+    }
+    .option-button:hover { background-color: rgba(78, 115, 223, 0.2) !important; border-color: #4e73df !important; color: white !important; transform: translateY(-2px); }
     .option-arrow { opacity: 0; transform: translateX(-10px); transition: all 0.3s ease; }
     .option-button:hover .option-arrow { opacity: 1; transform: translateX(0); }
 
     /* Home cards */
     .home-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
-    .home-card:hover { transform: translateY(-6px); box-shadow: 0 1rem 2rem rgba(0,0,0,0.12) !important; }
+    .home-card:hover { transform: translateY(-6px); box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35) !important; border-color: rgba(255, 193, 7, 0.25) !important; }
     .home-card-icon {
       width: 72px; height: 72px;
       border-radius: 20px;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
     }
 
     /* History cards */
     .history-card { transition: transform 0.2s ease; }
-    .history-card:hover { transform: translateY(-3px); }
+    .history-card:hover { transform: translateY(-3px); border-color: rgba(255, 193, 7, 0.2) !important; }
 
     /* Category chip */
     .cat-chip {
-      background: #f8f9fa;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 10px;
       padding: 6px 10px;
       font-size: 0.78rem;
     }
-    .cat-chip-name { color: #6c757d; margin-bottom: 2px; }
+    .cat-chip-name { color: rgba(255, 255, 255, 0.5); margin-bottom: 2px; }
     .cat-chip-val { font-weight: 700; font-size: 0.88rem; }
 
     /* Badge */

@@ -12,9 +12,9 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // 默认为true，防止刷新时出现未认证的瞬间跳转
   const [error, setError] = useState('');
-  
+
   // 注册新用户
   async function signup(email, password) {
     try {
@@ -26,9 +26,9 @@ export function AuthProvider({ children }) {
         email: email,
         displayName: email.split('@')[0],
       };
-      
+
       setCurrentUser(mockUser);
-      
+
       // 模拟创建用户资料
       const mockProfile = {
         userId: mockUser.uid,
@@ -36,13 +36,13 @@ export function AuthProvider({ children }) {
         email: mockUser.email,
         createdAt: new Date().toISOString(),
       };
-      
+
       setUserProfile(mockProfile);
-      
+
       // 存储到localStorage模拟持久化
       localStorage.setItem('dev_current_user', JSON.stringify(mockUser));
       localStorage.setItem('dev_user_profile', JSON.stringify(mockProfile));
-      
+
       setLoading(false);
       return mockUser;
     } catch (err) {
@@ -51,7 +51,7 @@ export function AuthProvider({ children }) {
       throw err;
     }
   }
-  
+
   // 用户登录
   async function login(email, password) {
     try {
@@ -63,9 +63,9 @@ export function AuthProvider({ children }) {
         email: email,
         displayName: email.split('@')[0],
       };
-      
+
       setCurrentUser(mockUser);
-      
+
       // 模拟用户资料
       const mockProfile = {
         userId: mockUser.uid,
@@ -73,13 +73,13 @@ export function AuthProvider({ children }) {
         email: mockUser.email,
         createdAt: new Date().toISOString(),
       };
-      
+
       setUserProfile(mockProfile);
-      
+
       // 存储到localStorage模拟持久化
       localStorage.setItem('dev_current_user', JSON.stringify(mockUser));
       localStorage.setItem('dev_user_profile', JSON.stringify(mockProfile));
-      
+
       setLoading(false);
       return mockUser;
     } catch (err) {
@@ -88,7 +88,7 @@ export function AuthProvider({ children }) {
       throw err;
     }
   }
-  
+
   // 用户登出
   async function logout() {
     try {
@@ -96,7 +96,7 @@ export function AuthProvider({ children }) {
       setLoading(true);
       setCurrentUser(null);
       setUserProfile(null);
-      
+
       // 清除localStorage中的数据
       localStorage.removeItem('dev_current_user');
       localStorage.removeItem('dev_user_profile');
@@ -107,11 +107,11 @@ export function AuthProvider({ children }) {
       throw err;
     }
   }
-  
+
   // 获取用户资料
   const fetchUserProfile = useCallback(async () => {
     if (!currentUser) return;
-    
+
     try {
       setLoading(true);
       // 从localStorage获取用户资料
@@ -130,16 +130,28 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }
   }, [currentUser]);
-  
+
   // 检查localStorage中是否有保存的用户信息
   useEffect(() => {
-    const storedUser = localStorage.getItem('dev_current_user');
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-      fetchUserProfile();
-    }
-  }, [fetchUserProfile]);
-  
+    const initAuth = async () => {
+      try {
+        const storedUser = localStorage.getItem('dev_current_user');
+        if (storedUser) {
+          setCurrentUser(JSON.parse(storedUser));
+          const storedProfile = localStorage.getItem('dev_user_profile');
+          if (storedProfile) {
+            setUserProfile(JSON.parse(storedProfile));
+          }
+        }
+      } catch (err) {
+        console.error('初始化认证状态失败:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    initAuth();
+  }, []);
+
   const value = {
     currentUser,
     userProfile,
@@ -151,7 +163,7 @@ export function AuthProvider({ children }) {
     logout,
     fetchUserProfile
   };
-  
+
   return (
     <AuthContext.Provider value={value}>
       {children}

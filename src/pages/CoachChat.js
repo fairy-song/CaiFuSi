@@ -1,19 +1,34 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { sendMessageToCoach } from '../services/api';
-import { Container, Row, Col, Card, Form, Button, Badge, Spinner } from 'react-bootstrap';
-import { FaPaperPlane, FaRobot, FaUser, FaLightbulb, FaCoins, FaChartLine, FaMoneyBillWave, FaChartBar } from 'react-icons/fa';
-import 'animate.css';
+import { Spinner } from 'react-bootstrap';
+import { FaArrowUp, FaPaperclip, FaMicrophone } from 'react-icons/fa';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-// 自定义Markdown组件
+// Gemini风格的渐变十字星标
+const GeminiSparkle = () => (
+  <div className="gemini-sparkle-container">
+    <div className="gemini-sparkle-inner"></div>
+  </div>
+);
+
+// 获取评分等级
+const getScoreLevel = (score) => {
+  const percentage = (score / 40) * 100;
+  if (percentage >= 85) return '优秀';
+  if (percentage >= 70) return '良好';
+  if (percentage >= 55) return '中等';
+  if (percentage >= 40) return '发展中';
+  return '起步阶段';
+};
+
 const MarkdownRenderer = ({ children }) => {
   return (
-    <div className="markdown-content">
+    <div className="gemini-markdown">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
@@ -25,35 +40,37 @@ const MarkdownRenderer = ({ children }) => {
                 style={atomDark}
                 language={match[1]}
                 PreTag="div"
+                customStyle={{ background: '#0d1117', borderRadius: '12px', margin: '16px 0', fontSize: '13px', border: '1px solid rgba(255,255,255,0.08)' }}
                 {...props}
               >
                 {String(children).replace(/\n$/, '')}
               </SyntaxHighlighter>
             ) : (
-              <code className={className} {...props}>
+              <code style={{ background: 'rgba(255,255,255,0.1)', padding: '3px 6px', borderRadius: '6px', fontSize: '0.9em', color: '#e2e8f0', fontFamily: 'SFMono-Regular, Consolas, monospace' }} {...props}>
                 {children}
               </code>
             );
           },
-          // 可以在这里定义其他标签的自定义渲染
+          p({ children }) {
+            return <p style={{ marginBottom: '1.2rem', lineHeight: '1.7', fontSize: '15px' }}>{children}</p>;
+          },
+          li({ children }) {
+            return <li style={{ marginBottom: '0.5rem', lineHeight: '1.7', fontSize: '15px' }}>{children}</li>;
+          },
+          ul({ children }) {
+            return <ul style={{ paddingLeft: '1.5rem', marginBottom: '1.2rem' }}>{children}</ul>;
+          },
+          ol({ children }) {
+            return <ol style={{ paddingLeft: '1.5rem', marginBottom: '1.2rem' }}>{children}</ol>;
+          },
+          strong({ children }) {
+            return <strong style={{ fontWeight: '600', color: '#fff' }}>{children}</strong>;
+          }
         }}
       >
         {children}
       </ReactMarkdown>
     </div>
-  );
-};
-
-// 增强型徽章组件
-const EnhancedBadge = ({ children, bg, className = '' }) => {
-  return (
-    <Badge 
-      bg={bg} 
-      className={`custom-badge px-3 py-2 rounded-pill fw-normal position-relative overflow-hidden ${className}`}
-    >
-      <span className="badge-content position-relative">{children}</span>
-      <span className="badge-glow"></span>
-    </Badge>
   );
 };
 
@@ -68,8 +85,7 @@ const CoachChat = () => {
   const [fullMessageText, setFullMessageText] = useState('');
   const [chatInitialized, setChatInitialized] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
-  
-  // 获取评估结果
+
   useEffect(() => {
     const storedAssessment = localStorage.getItem('assessmentResults');
     if (storedAssessment) {
@@ -82,123 +98,92 @@ const CoachChat = () => {
     }
   }, []);
 
-  // 初始化聊天
+  const getCategoryName = (category) => {
+    const categoryNames = {
+      savings: '储蓄能力', risk: '风险管理', emergency: '应急准备',
+      debt: '债务管理', knowledge: '财务知识', income: '收入稳定性',
+      goals: '财务目标', tracking: '支出追踪', insurance: '保险保障', pressure: '应对能力'
+    };
+    return categoryNames[category] || category;
+  };
+
   useEffect(() => {
     if (!chatInitialized) {
-      let initialMessage = '你好！我是你的AI金融心智教练。我可以帮你解答财务问题，提供理财建议，或者讨论如何培养健康的金钱观念。请问今天我能为你做什么？';
-      
-      // 如果有评估结果，则根据结果生成定制化欢迎信息
+      let initialMessage = '你好！我是你的智能金融教练。我会基于你的财务模型，为你解答疑惑并规划未来的配置建议。今天我能为你提供什么帮助？';
+
       if (userProfile) {
         const { userName, resultMessage, categoryScores, categoryAdvice } = userProfile;
         const name = userName || '您';
-        
-        // 找出用户的强项和弱项
+
         let strengths = [], weaknesses = [];
         Object.entries(categoryScores || {}).forEach(([category, score]) => {
-          if (score >= 70) {
-            strengths.push(getCategoryName(category));
-          } else if (score <= 40) {
-            weaknesses.push(getCategoryName(category));
-          }
+          if (score >= 70) strengths.push(getCategoryName(category));
+          else if (score <= 40) weaknesses.push(getCategoryName(category));
         });
-        
-        initialMessage = `你好${name}！很高兴见到你。我看到你已完成了财务健康评估，评估结果显示你属于"${resultMessage?.title || '财务成长阶段'}"类型。\n\n`;
-        
-        if (strengths.length > 0) {
-          initialMessage += `👍 你在${strengths.join('、')}方面表现不错。\n\n`;
-        }
-        
-        if (weaknesses.length > 0) {
-          initialMessage += `📈 我们可以一起在${weaknesses.join('、')}方面努力提升。\n\n`;
-        }
-        
-        initialMessage += `根据你的评估结果，我建议我们先聚焦以下方面：\n`;
-        const adviceToShow = categoryAdvice?.slice(0, 2) || ['建立良好的预算习惯', '制定合理的储蓄计划'];
+
+        initialMessage = `系统已成功接入**“${resultMessage?.title || '财务成长阶段'}”**档案。\n\n`;
+        if (strengths.length > 0) initialMessage += `💡 **强项展现**：你在${strengths.join('、')}方面表现出色。\n`;
+        if (weaknesses.length > 0) initialMessage += `🎯 **突破方向**：我们需要在${weaknesses.join('、')}上发力提升。\n\n`;
+
+        initialMessage += `结合大数据与您的画像，我为您定制了以下优先策略：\n`;
+        const adviceToShow = categoryAdvice?.slice(0, 2) || ['构建防范风险的流动性蓄水池', '量化收支，制定动态的资产配置计划'];
         initialMessage += adviceToShow.map(advice => `- ${advice}`).join('\n');
-        
-        initialMessage += `\n\n你有什么具体的财务问题想咨询，或者希望我帮助你制定哪方面的计划呢？`;
+
+        initialMessage += `\n\n您可以随时告诉我任何财务上的想法或疑惑，我将为您深度剖析。`;
       }
-      
-      setMessages([
-        { 
-          id: 1, 
-          sender: 'ai', 
-          text: initialMessage
-        }
-      ]);
-      
+
+      setMessages([{ id: 1, sender: 'ai', text: initialMessage }]);
       setChatInitialized(true);
     }
   }, [chatInitialized, userProfile]);
 
-  // 自动滚动到最新消息
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
+    // 首次进入只展示一条系统消息时，暂时不滚动，以保证顶部的 Gemini 巨幕问候语不被挤出视野
+    if (messages.length > 1) {
+      scrollToBottom();
+    }
   }, [messages, currentTypingText]);
 
-  // 处理打字效果
   useEffect(() => {
     if (typingEffect && fullMessageText) {
       let i = 0;
+      // 加快点打字速度，接近大模型真实响应感觉
       const interval = setInterval(() => {
         if (i <= fullMessageText.length) {
           setCurrentTypingText(fullMessageText.substring(0, i));
-          i++;
+          i += 2;
         } else {
           clearInterval(interval);
           setTypingEffect(false);
-          
-          // 完成打字效果后更新消息
-          setMessages(prevMessages => {
-            const newMessages = [...prevMessages];
-            const lastIndex = newMessages.length - 1;
-            if (lastIndex >= 0 && newMessages[lastIndex].sender === 'ai') {
-              newMessages[lastIndex] = {
-                ...newMessages[lastIndex],
-                text: fullMessageText
-              };
+          setMessages(prev => {
+            const newMsgs = [...prev];
+            if (newMsgs.length > 0 && newMsgs[newMsgs.length - 1].sender === 'ai') {
+              newMsgs[newMsgs.length - 1].text = fullMessageText;
             }
-            return newMessages;
+            return newMsgs;
           });
         }
-      }, 20); // 调整速度
-
+      }, 10);
       return () => clearInterval(interval);
     }
   }, [typingEffect, fullMessageText]);
 
-  // 获取分类名称函数
-  function getCategoryName(category) {
-    const categoryNames = {
-      savings: '储蓄能力',
-      risk: '风险管理',
-      emergency: '应急准备',
-      debt: '债务管理',
-      knowledge: '财务知识',
-      income: '收入稳定性',
-      goals: '财务目标',
-      tracking: '支出追踪',
-      insurance: '保险保障',
-      pressure: '应对能力'
-    };
-    return categoryNames[category] || category;
-  }
-
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
-    
+
     const userMessage = { id: Date.now(), sender: 'user', text: input };
-    setMessages(prevMessages => [...prevMessages, userMessage]);
+    setMessages(prev => [...prev, userMessage]);
     setInput('');
     setLoading(true);
-    
+
     try {
-      // 构建发送到后端的上下文
       let contextData = {
         message: input,
         user_id: currentUser?.uid || 'guest',
@@ -207,458 +192,492 @@ const CoachChat = () => {
           content: msg.text
         }))
       };
-      
-      // 如果有评估数据，添加到上下文中
+
       if (userProfile) {
         contextData.assessment_results = userProfile;
       }
-      
+
       const response = await sendMessageToCoach(contextData);
       setLoading(false);
-      
+
       if (response && response.reply) {
-        const aiMessage = { id: Date.now() + 1, sender: 'ai', text: '' };
-        setMessages(prevMessages => [...prevMessages, aiMessage]);
-        
-        // 启动打字效果
+        setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: '' }]);
         setFullMessageText(response.reply);
         setTypingEffect(true);
       }
     } catch (error) {
       setLoading(false);
-      setMessages(prevMessages => [
-        ...prevMessages,
-        { id: Date.now() + 1, sender: 'ai', text: '抱歉，我遇到了一些问题。请稍后再试。' }
-      ]);
-      console.error('发送消息时出错:', error);
+      setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: '抱歉，数据链路出现阻塞，请稍后再试。' }]);
     }
   };
 
-  // 格式化消息时间
-  const formatMessageTime = () => {
-    const now = new Date();
-    return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage(e);
+    }
   };
 
   return (
-    <div className="coach-chat-page">
-      {/* 背景动态元素 */}
-      <div className="animated-background">
-        <div className="floating-shape shape1"></div>
-        <div className="floating-shape shape2"></div>
-        <div className="floating-shape shape3"></div>
-        
-        {/* 金融相关元素 */}
-        <div className="finance-icon finance-icon-1">
-          <FaCoins size={24} color="rgba(78, 115, 223, 0.15)" />
+    <div className="gemini-app-root">
+
+      {/* 极简无边框顶部导航 */}
+      <header className="gemini-app-top">
+        <div className="gemini-brand-logo">
+          财赋思 <GeminiSparkle /> <span>AI 教练</span>
         </div>
-        <div className="finance-icon finance-icon-2">
-          <FaChartLine size={36} color="rgba(72, 187, 120, 0.15)" />
-        </div>
-        <div className="finance-icon finance-icon-3">
-          <FaMoneyBillWave size={32} color="rgba(255, 193, 7, 0.15)" />
-        </div>
-      </div>
-      
-      <Container className="py-5">
-        <Row className="justify-content-center mb-4">
-          <Col md={10} lg={8}>
-            <div className="text-center mb-4">
-              <EnhancedBadge bg="primary" className="mb-3">
-                <span className="fw-medium text-white">AI金融教练</span>
-              </EnhancedBadge>
-              <h1 className="display-5 fw-bold mb-3">财赋思 AI 教练对话</h1>
-              <p className="lead text-muted">
-                与您的AI金融心智教练进行对话，获取个性化财务建议和指导。
-              </p>
-            </div>
-          </Col>
-        </Row>
-        
-        <Row className="justify-content-center">
-          <Col md={10} lg={8}>
-            {userProfile && (
-              <Card className="mb-4 border-0 rounded-4 shadow-sm bg-gradient-light">
-                <Card.Body className="py-3 px-4">
-                  <div className="d-flex align-items-center">
-                    <div className="icon-container bg-primary-light rounded-circle d-flex align-items-center justify-content-center me-3">
-                      <FaChartBar className="text-primary" size={18} />
-                    </div>
-                    <div>
-                      <h6 className="mb-0">财务状况：{userProfile.resultMessage?.title || "评估完成"}</h6>
-                      <p className="text-muted small mb-0">
-                        得分：{userProfile.score} / {40} ({Math.round((userProfile.score / 40) * 100)}%)
-                      </p>
-                    </div>
-                    <div className="ms-auto">
-                      <Badge className="rounded-pill" bg={getBadgeColor(userProfile.score)}>
-                        {getScoreLevel(userProfile.score)}
-                      </Badge>
-                    </div>
-                  </div>
-                </Card.Body>
-              </Card>
-            )}
-            
-            <Card className="chat-container shadow-lg rounded-4 border-0 overflow-hidden">
-              <Card.Header className="bg-gradient-primary text-white p-3 d-flex align-items-center">
-                <div className="coach-avatar bg-white rounded-circle p-2 d-flex align-items-center justify-content-center me-3">
-                  <FaRobot className="text-primary" size={20} />
-                </div>
-                <div>
-                  <h5 className="mb-0 fw-bold">财赋思 AI 教练</h5>
-                  <small className="text-white-50">您的个人金融顾问</small>
-                </div>
-              </Card.Header>
-              
-              <Card.Body className="chat-messages p-4" style={{ height: '500px', overflowY: 'auto' }}>
-                {messages.map((message, index) => (
-            <div 
-              key={message.id} 
-                    className={`message-container d-flex ${message.sender === 'user' ? 'justify-content-end' : 'justify-content-start'} mb-3`}
-            >
-                    {message.sender === 'ai' && (
-                      <div className="message-avatar me-2 rounded-circle d-flex align-items-center justify-content-center bg-primary-light">
-                        <FaRobot className="text-primary" />
-                      </div>
-                    )}
-                    
-                    <div
-                      className={`message ${message.sender === 'user' ? 'user-message' : 'ai-message'} p-3 rounded-4 shadow-sm animate__animated ${
-                        message.sender === 'user' ? 'animate__fadeInRight' : 'animate__fadeInLeft'
-                      }`}
-                    >
-                      {message.sender === 'ai' && index === messages.length - 1 && typingEffect ? (
-                        <MarkdownRenderer>{currentTypingText}</MarkdownRenderer>
-                      ) : (
-                        <MarkdownRenderer>{message.text}</MarkdownRenderer>
-                      )}
-                      <small className="message-time text-muted d-block text-end mt-1">{formatMessageTime()}</small>
-                    </div>
-                    
-                    {message.sender === 'user' && (
-                      <div className="message-avatar ms-2 rounded-circle d-flex align-items-center justify-content-center bg-success-light">
-                        <FaUser className="text-success" />
-              </div>
-                    )}
-            </div>
-          ))}
-                
-          {loading && (
-                  <div className="d-flex justify-content-start mb-3">
-                    <div className="message-avatar me-2 rounded-circle d-flex align-items-center justify-content-center bg-primary-light">
-                      <FaRobot className="text-primary" />
-                    </div>
-                    <div className="ai-message p-3 rounded-4 shadow-sm">
-                      <div className="typing-indicator">
-                        <div className="typing-dot"></div>
-                        <div className="typing-dot"></div>
-                        <div className="typing-dot"></div>
-                </div>
-              </div>
+
+        {userProfile && (
+          <div className="gemini-header-profile">
+            <span>健康度: {userProfile.score}/40</span>
+            <span className="gemini-score-badge">{getScoreLevel(userProfile.score)}</span>
+          </div>
+        )}
+      </header>
+
+      {/* 对话主体区 */}
+      <main className="gemini-chat-scroll-area">
+        <div className="gemini-chat-content">
+
+          {messages.length <= 1 && !loading && (
+            <div className="gemini-hero-greeting fade-in">
+              <h1 className="gemini-gradient-text">你好，{currentUser?.displayName || '探索者'}</h1>
+              <h2 className="gemini-sub-greeting">今天想聊点什么财富话题？</h2>
             </div>
           )}
-                
-          <div ref={messagesEndRef} />
-              </Card.Body>
-        
-              <Card.Footer className="p-3 bg-light border-0">
-                <Form onSubmit={handleSendMessage}>
-                  <div className="d-flex">
-                    <Form.Control
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-                      placeholder="输入您的问题或描述您的财务状况..."
-                      className="rounded-pill me-2 border-0 shadow-sm py-2 px-3"
-              disabled={loading}
-            />
-                    <Button
-                      variant="primary"
-              type="submit"
-                      className="rounded-circle d-flex align-items-center justify-content-center btn-glow"
-                      style={{ width: '46px', height: '46px' }}
-                      disabled={loading}
-                    >
-                      {loading ? <Spinner animation="border" size="sm" /> : <FaPaperPlane />}
-                    </Button>
+
+          <div className="gemini-messages-list">
+            {messages.map((message, index) => {
+              const isUser = message.sender === 'user';
+              const isTyping = !isUser && index === messages.length - 1 && typingEffect;
+
+              return (
+                <div key={message.id} className={`gemini-msg-row ${isUser ? 'user' : 'ai'}`}>
+                  {!isUser && (
+                    <div className="gemini-msg-avatar">
+                      <GeminiSparkle />
+                    </div>
+                  )}
+
+                  <div className={`gemini-msg-content ${isUser ? 'user-bg' : ''}`}>
+                    {isTyping ? (
+                      <MarkdownRenderer>{currentTypingText}</MarkdownRenderer>
+                    ) : (
+                      <MarkdownRenderer>{message.text}</MarkdownRenderer>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {loading && (
+              <div className="gemini-msg-row ai">
+                <div className="gemini-msg-avatar">
+                  <GeminiSparkle />
+                </div>
+                <div className="gemini-msg-content">
+                  <div className="gemini-loading-dots">
+                    <div></div><div></div><div></div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 留出底部空间给输入框 */}
+            <div ref={messagesEndRef} className="gemini-scroll-anchor" />
+          </div>
+
         </div>
-                </Form>
-              </Card.Footer>
-            </Card>
-            
-            <div className="chat-tips mt-4 p-3 rounded-4 bg-light shadow-sm">
-              <h5 className="mb-3 d-flex align-items-center">
-                <FaLightbulb className="text-warning me-2" /> 提示:
-              </h5>
-              <ul className="mb-0 ps-4">
-                <li>尝试询问如何制定个人财务计划</li>
-                <li>您可以咨询投资基础知识或风险管理</li>
-                <li>讨论如何建立健康的消费习惯</li>
-                <li>寻求有关债务管理或储蓄策略的建议</li>
-              </ul>
+      </main>
+
+      {/* 底部浮动输入区 */}
+      <div className="gemini-input-dock">
+        <div className="gemini-input-container">
+          <form className="gemini-input-form" onSubmit={handleSendMessage}>
+            <button type="button" className="gemini-icon-btn" title="上传凭据附件 (敬请期待)">
+              <FaPaperclip size={18} />
+            </button>
+            <textarea
+              className="gemini-textarea"
+              placeholder="输入你的财务情况或咨询投资常识..."
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={loading}
+              rows={1}
+            />
+            <button type="button" className={`gemini-icon-btn ${input.trim() ? 'hidden' : ''}`} title="语音输入 (敬请期待)">
+              <FaMicrophone size={18} />
+            </button>
+            <button
+              aria-label="发送消息"
+              className={`gemini-send-btn ${input.trim() ? 'active' : ''}`}
+              type="submit"
+              disabled={loading || !input.trim()}
+            >
+              {loading ? <Spinner size="sm" animation="border" variant="dark" /> : <FaArrowUp size={16} />}
+            </button>
+          </form>
+          <div className="gemini-footer-disclaimer">
+            财赋思 AI 教练可能会提供不够准确的信息，请独立判断并核实所有的重要财务建议。
+          </div>
+        </div>
       </div>
-          </Col>
-        </Row>
-      </Container>
-      
-      {/* 自定义CSS */}
+
       <style jsx>{`
-        .coach-chat-page {
+        /* ======= 与全局深度对齐同时吸取 Gemini 风格 ======= */
+        .gemini-app-root {
+          /* 与 Dashboard / app 保持一致的深邃蓝黑背景 */
+          background: linear-gradient(180deg, #0f1724 0%, #1a2744 100%);
+          color: #e3e3e3;
+          min-height: calc(100vh - 60px);
+          width: 100%; /* 针对 Edge 的外层收缩修复 */
+          display: flex;
+          flex-direction: column;
+          font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
           position: relative;
-          min-height: 100vh;
-          padding-bottom: 3rem;
         }
-        
-        /* 动态背景元素 */
-        .animated-background {
-          position: fixed;
-          top: 0;
-          left: 0;
+
+        /* 顶部栏 */
+        .gemini-app-top {
+          height: 64px;
+          display: flex;
           width: 100%;
-          height: 100%;
-          overflow: hidden;
-          z-index: -2;
-          background: linear-gradient(120deg, #f0f8ff 0%, #e6f2ff 100%);
-        }
-        
-        .floating-shape {
-          position: absolute;
-          background: rgba(78, 115, 223, 0.05);
-          border-radius: 50%;
-          animation: float 15s infinite ease-in-out;
-        }
-        
-        .shape1 {
-          width: 300px;
-          height: 300px;
-          top: -150px;
-          left: 10%;
-          animation-delay: 0s;
-        }
-        
-        .shape2 {
-          width: 200px;
-          height: 200px;
-          top: 30%;
-          right: -100px;
-          animation-delay: 2s;
-          background: rgba(34, 74, 190, 0.05);
-        }
-        
-        .shape3 {
-          width: 250px;
-          height: 250px;
-          bottom: -125px;
-          left: 20%;
-          animation-delay: 4s;
-          background: rgba(92, 159, 247, 0.05);
-        }
-        
-        @keyframes float {
-          0% {
-            transform: translateY(0) rotate(0deg) scale(1);
-          }
-          50% {
-            transform: translateY(30px) rotate(10deg) scale(1.05);
-          }
-          100% {
-            transform: translateY(0) rotate(0deg) scale(1);
-          }
-        }
-        
-        /* 金融相关图标 */
-        .finance-icon {
-          position: absolute;
-          opacity: 0.8;
-          animation: float 20s infinite ease-in-out;
-          z-index: -1;
-        }
-        
-        .finance-icon-1 {
-          top: 15%;
-          left: 10%;
-          animation-delay: 0s;
-          transform: rotate(-15deg);
-        }
-        
-        .finance-icon-2 {
-          top: 60%;
-          left: 5%;
-          animation-delay: 5s;
-          transform: rotate(10deg);
-        }
-        
-        .finance-icon-3 {
-          top: 25%;
-          right: 8%;
-          animation-delay: 2s;
-          transform: rotate(5deg);
-        }
-        
-        /* 增强型徽章样式 */
-        .custom-badge {
-          display: inline-flex;
           align-items: center;
-          justify-content: center;
-          background-image: linear-gradient(to right, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.2) 100%);
-          backdrop-filter: blur(5px);
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-          transform: translateY(0);
-          transition: all 0.3s ease;
+          justify-content: space-between;
+          padding: 0 1.5rem;
+          flex-shrink: 0;
+          z-index: 10;
         }
         
-        .badge-content {
-          z-index: 1;
-        }
-        
-        .badge-glow {
-          position: absolute;
-          top: -50%;
-          left: -50%;
-          width: 200%;
-          height: 200%;
-          background: linear-gradient(
-            to right,
-            rgba(255, 255, 255, 0) 0%,
-            rgba(255, 255, 255, 0.2) 50%,
-            rgba(255, 255, 255, 0) 100%
-          );
-          transform: rotate(30deg);
-          animation: badgeGlow 3s ease-in-out infinite;
-        }
-        
-        @keyframes badgeGlow {
-          0% {
-            transform: translateX(-100%) rotate(30deg);
-          }
-          100% {
-            transform: translateX(100%) rotate(30deg);
-          }
-        }
-        
-        .bg-gradient-primary {
-          background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
-        }
-        
-        .bg-gradient-light {
-          background: linear-gradient(135deg, #f8f9fc 0%, #eaecf4 100%);
-        }
-        
-        .chat-container {
-          transition: all 0.3s ease;
-        }
-        
-        .message-avatar {
-          min-width: 40px;
-          height: 40px;
-        }
-        
-        .user-message {
-          background-color: #e9f5ff;
-          max-width: 80%;
-          margin-left: auto;
-        }
-        
-        .ai-message {
-          background-color: #ffffff;
-          max-width: 80%;
-          margin-right: auto;
-        }
-        
-        .message-time {
-          font-size: 0.7rem;
-        }
-        
-        .bg-primary-light {
-          background-color: rgba(78, 115, 223, 0.1);
-        }
-        
-        .bg-success-light {
-          background-color: rgba(72, 187, 120, 0.1);
-        }
-        
-        /* 打字指示器 */
-        .typing-indicator {
+        .gemini-brand-logo {
+          font-size: 1.25rem;
+          font-weight: 500;
+          color: #fff;
           display: flex;
           align-items: center;
-          height: 20px;
+          gap: 8px;
+        }
+
+        .gemini-brand-logo span {
+          color: rgba(255, 255, 255, 0.5);
+          font-size: 1rem;
+        }
+
+        .gemini-header-profile {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          color: #94a3b8;
+          font-size: 0.9rem;
+          background: rgba(255, 255, 255, 0.05);
+          padding: 6px 14px;
+          border-radius: 20px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
         }
         
-        .typing-dot {
-          width: 8px;
-          height: 8px;
-          margin: 0 2px;
-          border-radius: 50%;
-          background-color: #4e73df;
-          animation: typingAnimation 1.5s infinite ease-in-out;
+        .gemini-score-badge {
+          background: rgba(255, 193, 7, 0.15);
+          color: #ffc107;
+          border: 1px solid rgba(255, 193, 7, 0.3);
+          padding: 2px 8px;
+          border-radius: 12px;
+          font-weight: 600;
+          font-size: 0.8rem;
+        }
+
+        /* 主区域 */
+        .gemini-chat-scroll-area {
+          flex: 1 1 auto; /* 保证它能充分占据剩余空间且正确响应 scroll */
+          width: 100%;
+          overflow-y: auto;
+          overflow-x: hidden;
+          scroll-behavior: smooth;
+          display: flex; /* 让子元素继承全宽 */
+          flex-direction: column;
+        }
+
+        .gemini-chat-content {
+          max-width: 860px;
+          width: 100%;
+          margin: 0 auto;
+          padding: 1rem 1.5rem;
+          display: flex;
+          flex-direction: column;
+          min-height: 100%;
+        }
+
+        /* 巨型打招呼区 */
+        .gemini-hero-greeting {
+          padding: 4rem 0 3rem 0;
+          margin-bottom: auto;
+        }
+
+        .gemini-gradient-text {
+          font-size: 3.5rem;
+          font-weight: 600;
+          letter-spacing: -1.5px;
+          margin-bottom: 0.5rem;
+          background: linear-gradient(74deg, #4285f4 0, #9b72cb 9%, #d96570 20%, #d96570 24%, #9b72cb 35%, #4285f4 44%, #9b72cb 50%, #d96570 56%, #e3e3e3 75%, #e3e3e3 100%);
+          background-size: 400% 100%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: gradientShift 8s ease infinite;
+        }
+
+        .gemini-sub-greeting {
+          font-size: 3.5rem;
+          font-weight: 600;
+          letter-spacing: -1.5px;
+          color: #475569;
         }
         
-        .typing-dot:nth-child(1) {
-          animation-delay: 0s;
+        @keyframes gradientShift {
+          0% { background-position: 100% 0; }
+          50% { background-position: 0 0; }
+          100% { background-position: 100% 0; }
+        }
+
+        /* 消息列表 */
+        .gemini-messages-list {
+          display: flex;
+          flex-direction: column;
+          gap: 2rem;
+          padding-top: 1rem;
+        }
+
+        .gemini-msg-row {
+          display: flex;
+          gap: 1rem;
+          width: 100%;
+        }
+
+        .gemini-msg-row.user {
+          justify-content: flex-end;
+          padding-left: 2rem;
+        }
+
+        .gemini-msg-row.ai {
+          justify-content: flex-start;
+          padding-right: 2rem;
+        }
+
+        /* 极光形星星 */
+        .gemini-sparkle-container {
+          width: 28px;
+          height: 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: floatSparkle 4s ease-in-out infinite;
+        }
+
+        .gemini-sparkle-inner {
+          width: 18px;
+          height: 18px;
+          background: linear-gradient(135deg, #4285f4, #d96570, #ffc107);
+          /* 用 clip-path 裁出四角星形状 */
+          clip-path: polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%);
         }
         
-        .typing-dot:nth-child(2) {
-          animation-delay: 0.2s;
+        @keyframes floatSparkle {
+          0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+          50% { transform: translateY(-3px) rotate(15deg) scale(1.1); }
+        }
+
+        .gemini-msg-avatar {
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+
+        .gemini-msg-content {
+          font-size: 15px;
+          line-height: 1.7;
+          color: #e3e3e3;
+          word-break: break-word;
+          width: 100%;
+          max-width: 100%;
+        }
+
+        /* 用于给用户消息的特别背景，模仿 Gemini 用户灰白色大圆角泡泡 */
+        .gemini-msg-content.user-bg {
+          background-color: #1e293b;
+          color: #f8fafc;
+          padding: 0.8rem 1.4rem;
+          border-radius: 20px 20px 4px 20px;
+          max-width: max-content;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+          border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* 底部停靠区域，加了一个透明往下的渐变使得滚动自然被切断 */
+        .gemini-input-dock {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          background: linear-gradient(180deg, rgba(15, 23, 36, 0) 0%, rgba(15, 23, 36, 0.8) 30%, rgba(15, 23, 36, 1) 100%);
+          padding: 1.5rem 0 1rem 0;
+          pointer-events: none; /* 让背景不挡住点击事件 */
+        }
+
+        .gemini-input-container {
+          max-width: 860px;
+          width: 100%;
+          margin: 0 auto;
+          padding: 0 1.5rem;
+          pointer-events: auto; /* 恢复点击 */
+        }
+
+        /* 输入框本体 */
+        .gemini-input-form {
+          background-color: rgba(30, 41, 59, 0.8);
+          border-radius: 30px;
+          display: flex;
+          align-items: flex-end;
+          padding: 10px 12px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(16px);
+          transition: border-color 0.3s, box-shadow 0.3s;
         }
         
-        .typing-dot:nth-child(3) {
-          animation-delay: 0.4s;
+        .gemini-input-form:focus-within {
+          border-color: rgba(66, 133, 244, 0.5);
+          box-shadow: 0 8px 32px rgba(66, 133, 244, 0.15);
         }
-        
-        @keyframes typingAnimation {
-          0% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-5px);
-          }
-          100% {
-            transform: translateY(0);
-          }
-        }
-        
-        /* 按钮发光效果 */
-        .btn-glow {
-          position: relative;
-          overflow: hidden;
-          box-shadow: 0 0 10px rgba(78, 115, 223, 0.3);
-          transition: all 0.3s ease;
+
+        .gemini-icon-btn {
+          background: transparent;
           border: none;
-        }
-        
-        .btn-glow:hover {
-          box-shadow: 0 0 20px rgba(78, 115, 223, 0.5);
-          transform: translateY(-2px);
-        }
-        
-        .icon-container {
+          color: #94a3b8;
+          cursor: pointer;
           width: 36px;
           height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          flex-shrink: 0;
+          transition: background 0.2s, color 0.2s;
         }
+        
+        .gemini-icon-btn:hover {
+          background: rgba(255,255,255,0.1);
+          color: #e2e8f0;
+        }
+        
+        .gemini-icon-btn.hidden {
+          display: none;
+        }
+
+        .gemini-textarea {
+          flex: 1;
+          background: transparent;
+          border: none;
+          color: #f8fafc;
+          outline: none;
+          resize: none;
+          min-height: 26px;
+          max-height: 200px;
+          font-size: 15px;
+          line-height: 26px;
+          padding: 5px 8px;
+          font-family: inherit;
+        }
+        
+        .gemini-textarea::placeholder {
+           color: #64748b;
+        }
+
+        .gemini-send-btn {
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          border: none;
+          background-color: #334155;
+          color: #94a3b8;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+          flex-shrink: 0;
+          margin-left: auto;
+        }
+
+        .gemini-send-btn.active {
+          background-color: #fff;
+          color: #000;
+        }
+        
+        .gemini-send-btn:disabled {
+          cursor: not-allowed;
+          opacity: 0.6;
+        }
+
+        .gemini-footer-disclaimer {
+          text-align: center;
+          color: #64748b;
+          font-size: 12px;
+          margin-top: 14px;
+          line-height: 1.4;
+        }
+
+        .gemini-scroll-anchor {
+          height: 140px; /* 给底部悬浮框留出足够大的余量 */
+        }
+
+        /* 加载点集 */
+        .gemini-loading-dots {
+          display: flex;
+          gap: 6px;
+          padding: 8px 0;
+        }
+        
+        .gemini-loading-dots div {
+          width: 8px;
+          height: 8px;
+          background-color: #4285f4;
+          border-radius: 50%;
+          animation: gemini-bounce 1.4s infinite ease-in-out both;
+        }
+        
+        .gemini-loading-dots div:nth-child(1) { animation-delay: -0.32s; background-color: #4285f4; }
+        .gemini-loading-dots div:nth-child(2) { animation-delay: -0.16s; background-color: #ea4335; }
+        .gemini-loading-dots div:nth-child(3) { background-color: #fbbc05; }
+        
+        @keyframes gemini-bounce {
+          0%, 80%, 100% { transform: scale(0); }
+          40% { transform: scale(1); }
+        }
+
+        .fade-in {
+          animation: fadeIn 0.8s ease-out;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Webkit原生滚动条美化 */
+        .gemini-chat-scroll-area::-webkit-scrollbar {
+          width: 6px;
+        }
+        .gemini-chat-scroll-area::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .gemini-chat-scroll-area::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.15);
+          border-radius: 10px;
+        }
+        .gemini-chat-scroll-area::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.3);
+        }
+
       `}</style>
     </div>
   );
-  
-  // 用户评分等级函数
-  function getScoreLevel(score) {
-    const percentage = (score / 40) * 100;
-    if (percentage >= 85) return '优秀';
-    if (percentage >= 70) return '良好';
-    if (percentage >= 55) return '中等';
-    if (percentage >= 40) return '发展中';
-    return '起步阶段';
-  }
-  
-  // 获取徽章颜色函数
-  function getBadgeColor(score) {
-    const percentage = (score / 40) * 100;
-    if (percentage >= 85) return 'success';
-    if (percentage >= 70) return 'primary';
-    if (percentage >= 55) return 'info';
-    if (percentage >= 40) return 'warning';
-    return 'secondary';
-  }
 };
 
-export default CoachChat; 
+export default CoachChat;

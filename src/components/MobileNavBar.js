@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { 
-  FaHome, FaUser, FaBrain, FaRobot, 
-  FaBook, FaQuestionCircle, FaSignOutAlt
+import {
+  FaHome, FaUser, FaBrain, FaRobot,
+  FaBook, FaQuestionCircle, FaSignOutAlt, FaChartLine
 } from 'react-icons/fa';
 
 // 移动端底部导航栏样式
@@ -33,11 +33,12 @@ const styles = {
     textDecoration: 'none',
     fontSize: '0.7rem',
     padding: '5px 0',
-    width: '20%',
+    width: '16.66%',
     transition: 'all 0.3s ease'
   },
   navItemActive: {
-    color: '#0d6efd'
+    color: '#ffc107',
+    fontWeight: 'bold'
   },
   navIcon: {
     fontSize: '1.3rem',
@@ -50,7 +51,7 @@ const MobileNavBar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  
+
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
@@ -62,22 +63,23 @@ const MobileNavBar = () => {
       setIsLoggingOut(false);
     }
   };
-  
+
   const navItems = [
     { path: '/', icon: <FaHome style={styles.navIcon} />, label: '首页' },
+    { path: '/market', icon: <FaChartLine style={styles.navIcon} />, label: '市场' },
     { path: '/info/knowledge', icon: <FaBook style={styles.navIcon} />, label: '知识' },
     { path: '/assessment', icon: <FaBrain style={styles.navIcon} />, label: '评估', requireAuth: true },
-    { path: '/coach', icon: <FaRobot style={styles.navIcon} />, label: 'AI教练', requireAuth: true },
+    { path: '/coach', icon: <FaRobot style={styles.navIcon} />, label: '教练', requireAuth: true },
     { path: '/dashboard', icon: <FaUser style={styles.navIcon} />, label: '我的', requireAuth: true }
   ];
-  
+
   return (
     <div className="d-md-none" style={styles.navContainer}>
       {navItems.map((item) => {
         // 如果需要登录但用户未登录，则跳转到登录页
         if (item.requireAuth && !currentUser) {
           return (
-            <Link 
+            <Link
               key={item.path}
               to="/login"
               style={styles.navItem}
@@ -87,14 +89,14 @@ const MobileNavBar = () => {
             </Link>
           );
         }
-        
+
         return (
-          <Link 
+          <Link
             key={item.path}
             to={item.path}
             style={{
               ...styles.navItem,
-              ...(location.pathname === item.path ? styles.navItemActive : {})
+              ...((item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)) ? styles.navItemActive : {})
             }}
           >
             {item.icon}

@@ -1,0 +1,518 @@
+/* ========================================
+   Financial Market Page Styles
+   ======================================== */
+
+/* --- Color Variables --- */
+:root {
+  --market-up: #cf1322;
+  --market-up-bg: rgba(207, 19, 34, 0.1);
+  --market-down: #3f8600;
+  --market-down-bg: rgba(63, 134, 0, 0.1);
+  --market-flat: #8c8c8c;
+  --market-card-bg: rgba(255, 255, 255, 0.05);
+  --market-card-border: rgba(255, 255, 255, 0.1);
+  --market-gradient-start: #0f1724;
+  --market-gradient-end: #1a2744;
+}
+
+/* --- Banner --- */
+.market-banner {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  padding: 2.5rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.market-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(255, 193, 7, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 50%, rgba(52, 152, 219, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.market-banner-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.market-banner-subtitle {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* --- News Ticker --- */
+.market-news-ticker {
+  overflow: hidden;
+  white-space: nowrap;
+  margin-top: 1.5rem;
+  padding: 0.6rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.market-news-ticker-inner {
+  display: inline-block;
+  animation: ticker-scroll 30s linear infinite;
+}
+
+.market-news-ticker-inner:hover {
+  animation-play-state: paused;
+}
+
+.market-news-item {
+  display: inline-block;
+  padding: 0 2rem;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.875rem;
+}
+
+.market-news-item::before {
+  content: '•';
+  color: #ffc107;
+  margin-right: 0.5rem;
+  font-weight: bold;
+}
+
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* --- Tab Navigation --- */
+.market-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 2rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.market-tab {
+  flex: 1;
+  padding: 0.85rem 1.5rem;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.market-tab:hover {
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.market-tab.active {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(255, 193, 7, 0.1));
+  color: #ffc107;
+  box-shadow: 0 2px 12px rgba(255, 193, 7, 0.15);
+}
+
+/* --- Index Cards Row --- */
+.market-index-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.market-index-card {
+  background: var(--market-card-bg);
+  border: 1px solid var(--market-card-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.market-index-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 193, 7, 0.3);
+}
+
+.market-index-name {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 0.5rem;
+}
+
+.market-index-price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.market-index-change {
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Stock Table --- */
+.market-stock-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--market-card-bg);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--market-card-border);
+  backdrop-filter: blur(10px);
+}
+
+.market-stock-table thead th {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: right;
+}
+
+.market-stock-table thead th:first-child,
+.market-stock-table thead th:nth-child(2) {
+  text-align: left;
+}
+
+.market-stock-table tbody tr {
+  transition: all 0.2s ease;
+}
+
+.market-stock-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.market-stock-table tbody td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.market-stock-table tbody td:first-child {
+  text-align: left;
+  font-weight: 600;
+  color: #fff;
+}
+
+.market-stock-table tbody td:nth-child(2) {
+  text-align: left;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.8rem;
+}
+
+.market-stock-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* --- Metal Cards Grid --- */
+.market-metal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.market-metal-card {
+  background: var(--market-card-bg);
+  border: 1px solid var(--market-card-border);
+  border-radius: 16px;
+  padding: 1.75rem;
+  transition: all 0.35s ease;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.market-metal-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 16px 16px 0 0;
+  transition: opacity 0.3s ease;
+}
+
+.market-metal-card.up::before {
+  background: linear-gradient(90deg, var(--market-up), transparent);
+}
+
+.market-metal-card.down::before {
+  background: linear-gradient(90deg, var(--market-down), transparent);
+}
+
+.market-metal-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 193, 7, 0.25);
+}
+
+.market-metal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.market-metal-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.market-metal-name-en {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 2px;
+}
+
+.market-metal-symbol {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.market-metal-price {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.market-metal-unit {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 1rem;
+}
+
+.market-metal-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+
+.market-metal-change.up {
+  background: var(--market-up-bg);
+  color: var(--market-up);
+}
+
+.market-metal-change.down {
+  background: var(--market-down-bg);
+  color: var(--market-down);
+}
+
+.market-metal-details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.market-metal-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.market-metal-detail-label {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.market-metal-detail-value {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- CNY Price Badge --- */
+.market-metal-cny {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 193, 7, 0.06);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 193, 7, 0.12);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.market-metal-cny-label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.market-metal-cny-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffc107;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Price Colors --- */
+.price-up {
+  color: var(--market-up);
+}
+
+.price-down {
+  color: var(--market-down);
+}
+
+.price-flat {
+  color: var(--market-flat);
+}
+
+/* --- Section Title --- */
+.market-section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.market-section-title::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 1.1rem;
+  background: #ffc107;
+  border-radius: 2px;
+}
+
+/* --- Page Container --- */
+.market-page {
+  min-height: calc(100vh - 170px);
+  background: linear-gradient(180deg, var(--market-gradient-start) 0%, var(--market-gradient-end) 100%);
+  color: #fff;
+}
+
+.market-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* --- Timestamp --- */
+.market-timestamp {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.8rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* --- Disclaimer --- */
+.market-disclaimer {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.72rem;
+  margin-top: 0.75rem;
+  line-height: 1.6;
+}
+
+/* --- Animations --- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.market-animate-in {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.market-animate-in:nth-child(1) { animation-delay: 0.05s; }
+.market-animate-in:nth-child(2) { animation-delay: 0.1s; }
+.market-animate-in:nth-child(3) { animation-delay: 0.15s; }
+.market-animate-in:nth-child(4) { animation-delay: 0.2s; }
+
+/* --- Responsive --- */
+@media (max-width: 991.98px) {
+  .market-metal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .market-index-row {
+    grid-template-columns: 1fr;
+  }
+
+  .market-banner-title {
+    font-size: 1.5rem;
+  }
+
+  .market-content {
+    padding: 1.25rem 1rem;
+  }
+
+  .market-stock-table {
+    font-size: 0.82rem;
+  }
+
+  .market-stock-table thead th,
+  .market-stock-table tbody td {
+    padding: 0.7rem 0.6rem;
+  }
+
+  .market-metal-price {
+    font-size: 1.5rem;
+  }
+
+  .market-metal-card {
+    padding: 1.25rem;
+  }
+
+  .market-tabs {
+    flex-direction: column;
+  }
+}

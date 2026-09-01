@@ -8,7 +8,8 @@ import {
 import {
   FaHome, FaUser, FaBrain, FaRobot,
   FaBook, FaQuestionCircle, FaInfoCircle,
-  FaLock, FaFileContract, FaShieldAlt
+  FaLock, FaFileContract, FaShieldAlt,
+  FaChartLine
 } from 'react-icons/fa';
 import { CSSTransition, SwitchTransition } from 'react-transition-group';
 import 'animate.css';
@@ -87,6 +88,11 @@ const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [brandHovered, setBrandHovered] = useState(false);
+
+  const isActive = (path) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
+  };
 
   const handleLogout = async () => {
     try {
@@ -174,7 +180,7 @@ const Layout = () => {
           position: relative;
         }
         
-        .nav-link:hover {
+        .nav-link:hover, .nav-link.active {
           color: #ffc107 !important;
         }
         
@@ -188,7 +194,8 @@ const Layout = () => {
           transition: width 0.3s ease;
         }
         
-        .nav-link-container:hover .nav-underline {
+        .nav-link-container:hover .nav-underline,
+        .nav-link-container.active .nav-underline {
           width: 100%;
         }
         
@@ -240,7 +247,7 @@ const Layout = () => {
 
       {/* 导航栏 - 在页面切换时保持不变 */}
       <div className="navbar-wrapper">
-        <Navbar expand="lg" bg="dark" variant="dark" className="shadow-lg py-2 navbar" style={{ backgroundColor: '#1a2234 !important' }}>
+        <Navbar expand="md" bg="dark" variant="dark" className="shadow-lg py-2 navbar" style={{ backgroundColor: '#1a2234 !important' }}>
           <Container>
             <Navbar.Brand
               as={Link}
@@ -258,95 +265,105 @@ const Layout = () => {
               </span>
             </Navbar.Brand>
 
-            <Navbar.Toggle aria-controls="navbar-nav" />
-            <Navbar.Collapse id="navbar-nav" className="justify-content-end">
-              <Nav className="align-items-center gap-3">
-                <div className="nav-link-container position-relative">
-                  <Nav.Link
-                    as={Link}
-                    to="/"
-                    className="text-white d-flex align-items-center border-0 nav-link"
-                  >
-                    <FaHome className="me-2" /> 首页
-                  </Nav.Link>
-                  <div className="nav-underline"></div>
-                </div>
+            <Nav className="d-none d-md-flex align-items-center gap-3 ms-auto">
+              <div className={`nav-link-container position-relative ${isActive('/') ? 'active' : ''}`}>
+                <Nav.Link
+                  as={Link}
+                  to="/"
+                  className={`text-white d-flex align-items-center border-0 nav-link ${isActive('/') ? 'active' : ''}`}
+                >
+                  <FaHome className="me-2" /> 首页
+                </Nav.Link>
+                <div className="nav-underline"></div>
+              </div>
 
-                {currentUser ? (
-                  <>
-                    <div className="nav-link-container position-relative">
-                      <Nav.Link
-                        as={Link}
-                        to="/dashboard"
-                        className="text-white d-flex align-items-center border-0 nav-link"
-                      >
-                        <FaUser className="me-2" /> 个人中心
-                      </Nav.Link>
-                      <div className="nav-underline"></div>
-                    </div>
+              <div className={`nav-link-container position-relative ${isActive('/market') ? 'active' : ''}`}>
+                <Nav.Link
+                  as={Link}
+                  to="/market"
+                  className={`text-white d-flex align-items-center border-0 nav-link ${isActive('/market') ? 'active' : ''}`}
+                >
+                  <FaChartLine className="me-2" /> 金融中心
+                </Nav.Link>
+                <div className="nav-underline"></div>
+              </div>
 
-                    <div className="nav-link-container position-relative">
-                      <Nav.Link
-                        as={Link}
-                        to="/assessment"
-                        className="text-white d-flex align-items-center border-0 nav-link"
-                      >
-                        <FaBrain className="me-2" /> 心智评估
-                      </Nav.Link>
-                      <div className="nav-underline"></div>
-                    </div>
-
-                    <div className="nav-link-container position-relative">
-                      <Nav.Link
-                        as={Link}
-                        to="/coach"
-                        className="text-white d-flex align-items-center border-0 nav-link"
-                      >
-                        <FaRobot className="me-2" /> AI教练
-                      </Nav.Link>
-                      <div className="nav-underline"></div>
-                    </div>
-
-                    <AnimatedButton
-                      variant="danger"
-                      onClick={handleLogout}
-                      className="ms-2 rounded-pill px-4 fw-medium"
-                    >
-                      登出
-                    </AnimatedButton>
-                  </>
-                ) : (
-                  <>
-                    <div className="nav-link-container position-relative">
-                      <Nav.Link
-                        as={Link}
-                        to="/login"
-                        className="text-white d-flex align-items-center border-0 nav-link"
-                      >
-                        登录
-                      </Nav.Link>
-                      <div className="nav-underline"></div>
-                    </div>
-
-                    <AnimatedButton
+              {currentUser ? (
+                <>
+                  <div className={`nav-link-container position-relative ${isActive('/dashboard') ? 'active' : ''}`}>
+                    <Nav.Link
                       as={Link}
-                      to="/register"
-                      variant="warning"
-                      className="ms-2 text-dark rounded-pill px-4 fw-medium text-decoration-none"
+                      to="/dashboard"
+                      className={`text-white d-flex align-items-center border-0 nav-link ${isActive('/dashboard') ? 'active' : ''}`}
                     >
-                      注册
-                    </AnimatedButton>
-                  </>
-                )}
-              </Nav>
-            </Navbar.Collapse>
+                      <FaUser className="me-2" /> 个人中心
+                    </Nav.Link>
+                    <div className="nav-underline"></div>
+                  </div>
+
+
+
+                  <div className={`nav-link-container position-relative ${isActive('/assessment') ? 'active' : ''}`}>
+                    <Nav.Link
+                      as={Link}
+                      to="/assessment"
+                      className={`text-white d-flex align-items-center border-0 nav-link ${isActive('/assessment') ? 'active' : ''}`}
+                    >
+                      <FaBrain className="me-2" /> 心智评估
+                    </Nav.Link>
+                    <div className="nav-underline"></div>
+                  </div>
+
+                  <div className={`nav-link-container position-relative ${isActive('/coach') ? 'active' : ''}`}>
+                    <Nav.Link
+                      as={Link}
+                      to="/coach"
+                      className={`text-white d-flex align-items-center border-0 nav-link ${isActive('/coach') ? 'active' : ''}`}
+                    >
+                      <FaRobot className="me-2" /> AI教练
+                    </Nav.Link>
+                    <div className="nav-underline"></div>
+                  </div>
+
+                  <AnimatedButton
+                    variant="danger"
+                    onClick={handleLogout}
+                    className="ms-2 rounded-pill px-4 fw-medium"
+                  >
+                    登出
+                  </AnimatedButton>
+                </>
+              ) : (
+                <>
+                  <div className={`nav-link-container position-relative ${isActive('/login') ? 'active' : ''}`}>
+                    <Nav.Link
+                      as={Link}
+                      to="/login"
+                      className={`text-white d-flex align-items-center border-0 nav-link ${isActive('/login') ? 'active' : ''}`}
+                    >
+                      登录
+                    </Nav.Link>
+                    <div className="nav-underline"></div>
+                  </div>
+
+                  <AnimatedButton
+                    as={Link}
+                    to="/register"
+                    variant="warning"
+                    className="ms-2 text-dark rounded-pill px-4 fw-medium text-decoration-none"
+                  >
+                    注册
+                  </AnimatedButton>
+                </>
+              )}
+            </Nav>
           </Container>
         </Navbar>
       </div>
 
       {/* 主要内容区域 */}
-      <main className="main-content flex-grow-1" style={location.pathname === '/' ? { padding: 0 } : {}}>
-        {location.pathname === '/' ? (
+      <main className="main-content flex-grow-1" style={location.pathname === '/' || location.pathname === '/market' || location.pathname === '/dashboard' ? { padding: 0 } : {}}>
+        {location.pathname === '/' || location.pathname === '/market' || location.pathname === '/dashboard' ? (
           <PageTransition>
             <Outlet />
           </PageTransition>
