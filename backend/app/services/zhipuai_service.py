@@ -2,6 +2,7 @@ import os
 import re
 import json
 import sys
+import time
 from zhipuai import ZhipuAI
 
 # 过滤思考标签函数
@@ -32,11 +33,13 @@ class ZhipuAIService:
             # 使用新版SDK初始化客户端
             self.client = ZhipuAI(api_key=self.api_key)
             print(f"ZhipuAIService初始化成功，API密钥长度: {len(self.api_key)}")
-        
+
         # 会话记忆，使用字典存储不同用户的对话历史
         self.chat_history = {}
         # 最大历史记忆长度（消息数量）
-        self.max_history_length = 10
+        self.max_history_length = 6
+        self.max_retry_count = 2
+        self.retry_delay_seconds = 1
 
     def get_chat_response(self, data):
         """
@@ -63,60 +66,89 @@ class ZhipuAIService:
             user_id = data.get('user_id', 'default_user')
             chat_history = data.get('chat_history', [])
             assessment_results = data.get('assessment_results', None)
-            
+
             # 如果前端提供了聊天历史，则使用它，否则使用服务端存储的历史
             if not chat_history and user_id in self.chat_history:
                 chat_history = self.chat_history[user_id]
-            
+
             # 构建系统提示词
             system_prompt = self._build_system_prompt(assessment_results)
-            
+
             # 构建对话历史
             messages = [{"role": "system", "content": system_prompt}]
-            
+
             # 添加历史消息，确保不超过限制
             if chat_history:
                 # 如果历史太长，只保留最近的几条
                 recent_history = chat_history[-self.max_history_length:] if len(chat_history) > self.max_history_length else chat_history
                 for msg in recent_history:
                     messages.append({"role": msg.get('role', 'user'), "content": msg.get('content', '')})
-            
+
             # 添加当前用户消息
             messages.append({"role": "user", "content": message})
-            
-            print(f"调用智谱AI，消息长度: {len(message)}")
-            # 调用智谱AI API - 使用 glm-4-flash 模型（当前推荐免费模型）
-            response = self.client.chat.completions.create(
-                model="glm-4-flash",
-                messages=messages,
-                temperature=0.7,
-                top_p=0.9
+
+            print(
+                f"调用智谱AI，user_id={user_id}，消息长度={len(message)}，"
+                f"历史条数={len(chat_history)}，发送消息数={len(messages)}"
             )
-            
+
+            response = self._create_chat_completion_with_retry(messages)
+
             # 获取AI回复（新版SDK直接返回对象）
-            ai_reply = response.choices[0].message.content
+            ai_reply = response.choices[0].message.content if response.choices else ""
             print(f"收到AI回复，长度: {len(ai_reply)}")
-            
+
             # 过滤掉思考标签
             filtered_response = filter_thinking_tags(ai_reply)
-            
+
             # 更新对话历史
             if user_id not in self.chat_history:
                 self.chat_history[user_id] = []
-            
+
             # 添加用户消息和AI回复到历史记录
             self.chat_history[user_id].append({"role": "user", "content": message})
             self.chat_history[user_id].append({"role": "assistant", "content": filtered_response})
-            
+
             # 如果历史太长，移除最早的消息
             if len(self.chat_history[user_id]) > self.max_history_length * 2:
                 self.chat_history[user_id] = self.chat_history[user_id][-self.max_history_length * 2:]
-            
+
             return {"status": "success", "reply": filtered_response}
-                
+
         except Exception as e:
-            print(f"调用ZhipuAI服务时发生错误: {str(e)}")
-            return {"status": "error", "message": f"调用ZhipuAI服务时发生错误: {str(e)}"}
+            error_message = str(e)
+            print(f"调用ZhipuAI服务时发生错误: {error_message}")
+
+            lower_error = error_message.lower()
+            if "timeout" in lower_error or "timed out" in lower_error:
+                return {"status": "error", "message": "AI服务响应超时，请稍后重试"}
+
+            return {"status": "error", "message": f"调用ZhipuAI服务时发生错误: {error_message}"}
+
+    def _create_chat_completion_with_retry(self, messages):
+        """
+        调用智谱AI接口，带有限次重试机制
+        :param messages: 发送给模型的消息列表
+        :return: 模型响应对象
+        """
+        last_error = None
+
+        for attempt in range(1, self.max_retry_count + 2):
+            try:
+                print(f"智谱AI调用尝试第 {attempt} 次")
+                return self.client.chat.completions.create(
+                    model="glm-4-flash",
+                    messages=messages,
+                    temperature=0.7,
+                    top_p=0.9
+                )
+            except Exception as e:
+                last_error = e
+                print(f"智谱AI调用第 {attempt} 次失败: {str(e)}")
+                if attempt <= self.max_retry_count:
+                    time.sleep(self.retry_delay_seconds * attempt)
+
+        raise last_error
 
     def _build_system_prompt(self, assessment_results=None):
         """

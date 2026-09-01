@@ -7,6 +7,20 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 
+const PROXY_TIMEOUT_MS = 30000;
+const HOP_BY_HOP_HEADERS = new Set([
+  'host',
+  'connection',
+  'content-length',
+  'transfer-encoding',
+  'keep-alive',
+  'proxy-authenticate',
+  'proxy-authorization',
+  'te',
+  'trailers',
+  'upgrade'
+]);
+
 // 获取命令行参数
 const args = process.argv.slice(2);
 const FRONTEND_PORT = args[0] || 3000;
@@ -19,48 +33,85 @@ const app = express();
 // 解析JSON请求体
 app.use(express.json());
 
+const sanitizeProxyHeaders = (headers = {}) => {
+  const result = {};
+
+  Object.entries(headers).forEach(([key, value]) => {
+    if (!HOP_BY_HOP_HEADERS.has(String(key).toLowerCase())) {
+      result[key] = value;
+    }
+  });
+
+  return result;
+};
+
+const buildProxyErrorResponse = (error) => {
+  if (error.name === 'AbortError') {
+    return {
+      status: 504,
+      payload: {
+        error: '代理请求超时',
+        message: '后端服务响应超时，请稍后重试',
+        backend: BACKEND_API
+      }
+    };
+  }
+
+  return {
+    status: 502,
+    payload: {
+      error: '代理服务器错误',
+      message: error.message,
+      backend: BACKEND_API
+    }
+  };
+};
+
 // API代理 - 手动实现，不使用http-proxy-middleware
 app.all('/api/*', async (req, res) => {
   const apiPath = req.path;
   const targetUrl = `${BACKEND_API}${apiPath}${req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''}`;
-  
+
   console.log(`[代理] ${req.method} ${apiPath} -> ${targetUrl}`);
-  
+
   try {
     // 使用fetch API进行代理
     const fetch = (await import('node-fetch')).default;
-    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), PROXY_TIMEOUT_MS);
+
     const options = {
       method: req.method,
-      headers: {
+      headers: sanitizeProxyHeaders({
         'Content-Type': 'application/json',
         ...req.headers
-      }
+      }),
+      signal: controller.signal
     };
-    
+
     // 如果有请求体，添加到options
     if (req.method !== 'GET' && req.method !== 'HEAD') {
-      options.body = JSON.stringify(req.body);
+      options.body = JSON.stringify(req.body ?? {});
     }
-    
+
     const response = await fetch(targetUrl, options);
     const data = await response.text();
-    
+    clearTimeout(timeoutId);
+
     // 设置响应头
     res.status(response.status);
     response.headers.forEach((value, key) => {
-      res.setHeader(key, value);
+      if (!HOP_BY_HOP_HEADERS.has(String(key).toLowerCase())) {
+        res.setHeader(key, value);
+      }
     });
-    
+
     // 发送响应
     res.send(data);
   } catch (error) {
     console.error(`[错误] 代理请求失败:`, error.message);
-    res.status(502).json({
-      error: '代理服务器错误',
-      message: error.message,
-      backend: BACKEND_API
-    });
+    const proxyError = buildProxyErrorResponse(error);
+    res.status(proxyError.status).json(proxyError.payload);
   }
 });
 

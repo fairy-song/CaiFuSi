@@ -1,12 +1,12 @@
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
 module.exports = function(app) {
-  // 配置API代理
+  // 配置API代理 (http-proxy-middleware v3: 使用 pathFilter 匹配,不能挂载在 '/api' 前缀下)
   app.use(
-    '/api',
     createProxyMiddleware({
       target: 'http://localhost:5001',
       changeOrigin: true,
+      pathFilter: '/api',
       logLevel: 'debug',
     })
   );

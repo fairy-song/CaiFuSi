@@ -63,135 +63,176 @@ if %errorlevel% neq 0 (
 )
 echo.
 
-REM 检查npm依赖
-echo [检查] 正在检测前端依赖...
-if not exist "node_modules\express" (
-    echo [警告] 缺少必要的npm依赖包
-    echo [提示] 正在自动安装依赖...
+REM ===============================================
+REM  第一阶段：检查前端依赖
+REM ===============================================
+echo [依赖] 正在检测前端npm依赖...
+if not exist "node_modules\.package-lock.json" (
+    echo [依赖] ✕ 缺少npm依赖包，正在自动安装...
+    echo [依赖] 执行 npm install，这可能需要几分钟...
     echo.
-    call npm install express@4 node-fetch@2
+    call npm install
     if %errorlevel% neq 0 (
-        echo [错误] 依赖安装失败！
-        echo 请手动运行: npm install express node-fetch@2
+        echo [依赖] ✕ 依赖安装失败！请手动运行: npm install
         pause
         exit /b 1
     )
-    echo [成功] 依赖安装完成
+    echo [依赖] ✓ 依赖安装完成
     echo.
 ) else (
-    echo [成功] 前端依赖已就绪
+    echo [依赖] ✓ 前端依赖已就绪
 )
 echo.
 
-REM 检查Python是否可用
-echo [检查] 正在检测Python...
+REM ===============================================
+REM  第二阶段：检查Python环境
+REM ===============================================
+echo [环境] 正在检测Python...
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [警告] Python命令不可用，尝试使用py命令...
+    echo [环境] Python命令不可用，尝试使用py命令...
     py --version >nul 2>&1
     if %errorlevel% neq 0 (
-        echo [错误] 未找到Python！
-        echo 请先安装Python 3.8或更高版本
+        echo [环境] ✕ 未找到Python！请先安装Python 3.8或更高版本
         pause
         exit /b 1
     ) else (
         set "PYTHON_CMD=py"
         for /f "tokens=*" %%i in ('py --version') do set PYTHON_VERSION=%%i
-        echo [成功] 找到%PYTHON_VERSION%
+        echo [环境] ✓ 找到!PYTHON_VERSION!
     )
 ) else (
     set "PYTHON_CMD=python"
     for /f "tokens=*" %%i in ('python --version') do set PYTHON_VERSION=%%i
-    echo [成功] 找到%PYTHON_VERSION%
+    echo [环境] ✓ 找到!PYTHON_VERSION!
 )
 echo.
 
-REM 启动后端服务
-echo [启动] 正在启动后端服务...
+REM ===============================================
+REM  第三阶段：启动后端服务
+REM ===============================================
+echo ================================================
+echo    正在启动后端服务...
+echo ================================================
+echo.
+echo [后端] 正在启动Flask后端服务...
 start "财赋思-后端" cmd /k "cd /d "%~dp0backend" && %PYTHON_CMD% run_dev_enhanced.py"
-
-REM 等待后端启动
-echo [等待] 等待后端服务启动（5秒）...
+echo [后端] ✓ 后端服务已在新窗口中启动
+echo [后端] 等待后端初始化（5秒）...
 timeout /t 5 /nobreak >nul
-
-REM 启动前端静态服务
-echo [启动] 正在启动前端静态服务...
-start "财赋思-前端" cmd /k "cd /d "%~dp0" && "!NODE_CMD!" simple-static-server.js 3000 5001"
-
-REM 等待前端启动
-echo [等待] 等待前端服务启动（5秒）...
-timeout /t 5 /nobreak >nul
-
+echo [后端] ✓ 后端初始化等待完成
 echo.
+
+REM ===============================================
+REM  第四阶段：构建前端资源
+REM ===============================================
 echo ================================================
-echo    服务启动中...
+echo    正在构建前端资源（生产模式）...
 echo ================================================
 echo.
-echo [检查] 正在验证服务状态...
+echo [构建] 开始执行 npm run build...
+echo [构建] 正在编译React组件、打包资源文件...
+echo [构建] 这可能需要1-3分钟，请耐心等待...
 echo.
 
-REM 检查前端服务是否启动
-echo [检查] 检测前端服务 (http://localhost:3000)...
+call npm run build
+if %errorlevel% neq 0 (
+    echo.
+    echo [构建] ✕ 前端构建失败！
+    echo [构建] 请检查上方的错误信息并修复后重试
+    echo.
+    pause
+    exit /b 1
+)
+
+echo.
+echo [构建] ✓ 前端资源构建成功！
+echo [构建] ✓ 生产环境文件已输出到 build 目录
+echo.
+
+REM ===============================================
+REM  第五阶段：启动前端静态服务器
+REM ===============================================
+echo ================================================
+echo    正在启动前端静态服务器...
+echo ================================================
+echo.
+echo [前端] 正在启动静态文件服务器（含API代理）...
+start "财赋思-前端" cmd /k "cd /d "%~dp0" && %NODE_CMD% simple-static-server.js"
+echo [前端] ✓ 前端静态服务器已在新窗口中启动
+echo.
+
+REM 等待静态服务器启动
+echo [前端] 等待服务器就绪（3秒）...
+timeout /t 3 /nobreak >nul
+echo.
+
+REM ===============================================
+REM  第六阶段：验证服务状态
+REM ===============================================
+echo ================================================
+echo    正在验证所有服务状态...
+echo ================================================
+echo.
+
+echo [验证] 检测前端服务 (http://localhost:3000)...
 curl -s http://localhost:3000 >nul 2>&1
 if %errorlevel% equ 0 (
-    echo [成功] 前端服务已启动
+    echo [验证] ✓ 前端服务运行正常
     set FRONTEND_OK=1
 ) else (
-    echo [警告] 前端服务可能还在启动中...
+    echo [验证] ⟳ 前端服务正在启动中...
     set FRONTEND_OK=0
 )
 
-REM 检查后端服务是否启动
-echo [检查] 检测后端服务 (http://localhost:5001)...
+echo [验证] 检测后端服务 (http://localhost:5001)...
 curl -s http://localhost:5001 >nul 2>&1
 if %errorlevel% equ 0 (
-    echo [成功] 后端服务已启动
+    echo [验证] ✓ 后端服务运行正常
     set BACKEND_OK=1
 ) else (
-    echo [警告] 后端服务可能还在启动中...
+    echo [验证] ⟳ 后端服务正在启动中...
     set BACKEND_OK=0
 )
 
 echo.
 echo ================================================
-echo    启动完成！
+echo    财赋思应用启动完成！
 echo ================================================
 echo.
 echo  服务地址：
-echo  ✓ 后端服务: http://localhost:5001
-echo  ✓ 前端页面: http://localhost:3000
+echo    前端页面: http://localhost:3000
+echo    后端API:  http://localhost:5001
 echo.
 
 if !FRONTEND_OK!==1 if !BACKEND_OK!==1 (
     echo  状态：所有服务运行正常 ✓
     echo.
-    echo [提示] 正在自动打开浏览器...
+    echo [浏览器] 正在自动打开浏览器...
     timeout /t 2 /nobreak >nul
     start http://localhost:3000
 ) else (
-    echo  状态：服务正在启动中，请稍候...
+    echo  状态：部分服务正在启动中，请稍候...
     echo.
-    echo  请注意：
-    echo  - 如果服务还在启动，请等待10-20秒后手动访问
-    echo  - 查看打开的两个命令行窗口，确认没有错误信息
-    echo  - 首次启动AI模型需要1-2分钟初始化
+    echo  提示：
+    echo  - 后端AI模型首次加载需要约1-2分钟
+    echo  - 如果页面无法访问，请等待10-20秒后重试
     echo.
-    echo [提示] 等待10秒后尝试打开浏览器...
-    timeout /t 10 /nobreak >nul
+    echo [浏览器] 等待5秒后尝试打开浏览器...
+    timeout /t 5 /nobreak >nul
     start http://localhost:3000
 )
 
 echo.
 echo  使用说明：
-echo  - 已打开两个命令行窗口（后端和前端）
-echo  - 关闭这两个窗口将停止服务
-echo  - 如果页面显示错误，请检查两个窗口的日志
-echo  - 如果端口被占用，请先关闭占用端口的程序
+echo  - 已打开两个命令行窗口（后端 和 前端静态服务器）
+echo  - 关闭这两个窗口将停止对应服务
+echo  - 修改前端代码后需重新运行此脚本以重新构建
 echo.
 echo  常见问题：
-echo  1. 页面无法访问 → 等待服务完全启动（约20秒）
-echo  2. 显示代理错误 → 检查后端窗口是否有错误
-echo  3. AI功能不可用 → 检查.env文件中的API密钥配置
+echo  1. 页面空白      → 等待服务完全启动后刷新
+echo  2. 显示代理错误  → 检查后端窗口是否有错误日志
+echo  3. AI功能不可用  → 检查 .env.local 中的API密钥配置
 echo.
 pause
 endlocal
