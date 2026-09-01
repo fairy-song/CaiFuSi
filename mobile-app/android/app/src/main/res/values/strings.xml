@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">CaiFuSiApp</string>
+    <string name="title_activity_main">CaiFuSiApp</string>
+    <string name="package_name">com.caifusi.app</string>
+    <string name="custom_url_scheme">com.caifusi.app</string>
+</resources>
