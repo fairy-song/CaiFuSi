@@ -65,53 +65,6 @@ const shouldRetry = (error, retriesLeft) => {
   return status >= 500 || status === 429;
 };
 
-const fetchWithTimeout = async (url, options = {}, timeout = DEFAULT_REQUEST_TIMEOUT) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-  try {
-    return await fetch(url, {
-      ...options,
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timeoutId);
-  }
-};
-
-const requestWithRetry = async (
-  requestFn,
-  {
-    retries = DEFAULT_RETRY_COUNT,
-    retryDelay = RETRY_DELAY_MS,
-    fallbackMessage = '请求失败，请稍后重试',
-  } = {}
-) => {
-  let attempt = 0;
-  let lastError;
-
-  while (attempt <= retries) {
-    try {
-      return await requestFn();
-    } catch (error) {
-      lastError = error;
-      if (!shouldRetry(error, retries - attempt)) {
-        throw buildFriendlyError(error, fallbackMessage);
-      }
-
-      attempt += 1;
-      if (attempt > retries) {
-        break;
-      }
-
-      console.warn(`请求失败，准备进行第 ${attempt} 次重试`, error);
-      await sleep(retryDelay * attempt);
-    }
-  }
-
-  throw buildFriendlyError(lastError, fallbackMessage);
-};
-
 // 创建axios实例
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -159,79 +112,6 @@ api.interceptors.response.use(
     return Promise.reject(buildFriendlyError(error, '请求失败，请稍后重试'));
   }
 );
-
-// 通用请求函数
-async function fetchApi(endpoint, options = {}) {
-  // 根据环境选择API基础URL
-  let baseUrl;
-
-  // 在GitHub Pages环境中使用外部API服务
-  if (isGitHubPages) {
-    baseUrl = process.env.REACT_APP_API_URL || 'https://你的API服务器地址';
-    // 注意: 外部API服务需要配置CORS允许GitHub Pages域名访问
-  } else if (process.env.NODE_ENV === 'production') {
-    baseUrl = process.env.REACT_APP_API_URL || '';
-  } else {
-    baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5001';
-  }
-
-  // 确保endpoint格式正确
-  const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  const url = `${baseUrl}/api${formattedEndpoint}`;
-
-  // 默认配置
-  const defaultOptions = {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    // 添加跨域支持
-    credentials: 'include',
-    mode: 'cors',
-  };
-
-  // 合并配置
-  const fetchOptions = {
-    ...defaultOptions,
-    ...options,
-  };
-
-  console.log(`正在请求API: ${url}`, options.method || 'GET');
-
-  try {
-    const response = await requestWithRetry(
-      () => fetchWithTimeout(url, fetchOptions, DEFAULT_REQUEST_TIMEOUT),
-      { fallbackMessage: 'API请求失败，请稍后重试' }
-    );
-
-    // 非2xx状态码
-    if (!response.ok) {
-      console.error(`API错误: ${response.status}`, response);
-      // 尝试解析错误响应
-      let errorMessage;
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorData.error || `请求失败，状态码: ${response.status}`;
-      } catch (e) {
-        errorMessage = `请求失败，状态码: ${response.status}`;
-      }
-      throw new Error(errorMessage);
-    }
-
-    // 尝试解析JSON响应
-    try {
-      const data = await response.json();
-      console.log(`API响应:`, data);
-      return data;
-    } catch (e) {
-      // 处理非JSON响应
-      console.log('API响应不是JSON格式');
-      return { status: 'success', message: '请求成功但返回非JSON格式' };
-    }
-  } catch (error) {
-    console.error('API请求错误:', error);
-    throw buildFriendlyError(error, 'API请求失败，请稍后重试');
-  }
-}
 
 // 示例：注册用户
 export const registerUser = async (userData) => {
