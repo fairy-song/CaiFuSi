@@ -28,19 +28,24 @@ const API_BASE_URL = resolveApiBaseUrl();
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const buildFriendlyError = (error, fallbackMessage) => {
+  let message;
+
   if (error.name === 'AbortError') {
-    return new Error('请求超时，请稍后重试');
+    message = '请求超时，请稍后重试';
+  } else if (error.code === 'ECONNABORTED') {
+    message = '请求超时，请检查网络或稍后重试';
+  } else if (error.message === 'Failed to fetch' || error.message === 'Network Error') {
+    message = '无法连接到服务器，请确认后端服务已启动';
+  } else {
+    message = error.message || fallbackMessage;
   }
 
-  if (error.code === 'ECONNABORTED') {
-    return new Error('请求超时，请检查网络或稍后重试');
+  const friendlyError = new Error(message);
+  // 保留原始响应体：上层 catch 可读取 error.response.data.message（后端返回的中文业务文案）
+  if (error.response) {
+    friendlyError.response = error.response;
   }
-
-  if (error.message === 'Failed to fetch' || error.message === 'Network Error') {
-    return new Error('无法连接到服务器，请确认后端服务已启动');
-  }
-
-  return new Error(error.message || fallbackMessage);
+  return friendlyError;
 };
 
 const shouldRetry = (error, retriesLeft) => {
@@ -290,42 +295,35 @@ export const fetchAssessmentResults = async (userId) => {
  */
 export const sendMessageToCoach = async (data) => {
   try {
-    console.log('发送消息到AI教练:', data);
+    // 统一走 axios.create 实例 api：自动继承 baseURL（已含 /api，路径不能再拼 /api）、超时、拦截器等全局配置
+    const response = await api.post('/coach/chat', data);
+    const result = response.data;
 
-    const response = await requestWithRetry(
-      () =>
-        fetchApi('/coach/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        }),
-      {
-        retries: 1,
-        fallbackMessage: 'AI教练服务暂时不可用，请稍后重试',
-      }
-    );
-
-    console.log('AI教练响应:', response);
-
-    if (response.status === 'success') {
-      return { reply: response.reply };
+    // 后端返回 success/error 业务包络：不能仅凭 HTTP 200 判定成功
+    if (result.status === 'success') {
+      return { reply: result.reply };
     }
 
-    throw new Error(response.message || '获取回复失败');
+    // HTTP 200 但业务包络为 error（防御未来网关吞错 / 接口变更）
+    throw new Error(result.message || '获取回复失败');
   } catch (error) {
     console.error('AI教练请求错误:', error);
 
-    if (error.message.includes('无法连接到服务器')) {
+    // 优先取后端 4xx/5xx 响应体中的中文 message（axios 拦截器已透传 error.response），兜底取错误信息
+    const errorMsg =
+      (error.response && error.response.data && error.response.data.message) ||
+      error.message ||
+      'AI教练暂时无法回复，请稍后再试';
+
+    if (errorMsg.includes('无法连接到服务器')) {
       throw new Error('无法连接到AI教练服务，请确认后端服务已启动');
     }
 
-    if (error.message.includes('超时')) {
+    if (errorMsg.includes('超时')) {
       throw new Error('AI教练响应超时，请稍后重试');
     }
 
-    throw new Error(`AI教练回复错误: ${error.message}`);
+    throw new Error(`AI教练回复错误: ${errorMsg}`);
   }
 };
 
